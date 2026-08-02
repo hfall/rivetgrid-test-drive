@@ -1,41 +1,86 @@
 import { RivetGrid, type Column } from "@rivetgrid/rivetgrid";
+import data from "./data.json";
+import React from "react";
 
-type Product = {
-  id: string;
-  name: string;
-  price: number;
+type Post = {
+  userId: number;
+  id: number;
+  title: string;
+  body: string;
 };
 
-const products: Product[] = [
-  { id: "1", name: "Laptop", price: 999.99 },
-  { id: "2", name: "Mouse", price: 29.99 },
-  { id: "3", name: "Keyboard", price: 79.99 },
-];
+const posts = data as Post[];
 
-const columns: Column<Product>[] = [
+const columns: Column<Post>[] = [
   {
-    id: "name",
-    header: "Product",
-    accessor: (row) => row.name,
+    id: "user",
+    header: "User Id",
+    accessor: (row) => row.userId,
     sortable: true,
+    searchable: true,
+    resizable: true,
+    pin: "left",
+    width: 80,
   },
   {
-    id: "price",
-    header: "Price",
-    accessor: (row) => `$${row.price.toFixed(2)}`,
+    id: "title",
+    header: "Title",
+    accessor: (row) => row.title,
     sortable: true,
+    searchable: true,
+    resizable: true,
+  },
+  {
+    id: "body",
+    header: "Post",
+    accessor: (row) => `$${row.body}`,
+    sortable: true,
+    searchable: true,
+    resizable: true,
   },
 ];
 
 export default function App() {
+  const [selectedRowIds, setSelectedRowIds] = React.useState<Set<string>>(
+    new Set(),
+  );
   return (
-    <main style={{ padding: 32 }}>
+    <main style={{ padding: 32, paddingBottom: 200 }}>
       <h1>My first RivetGrid table</h1>
+
+      <br />
       <RivetGrid
         columns={columns}
-        rows={products}
+        rows={posts}
         getRowKey={(row) => row.id}
-        ariaLabel="Products"
+        ariaLabel="Posts"
+        stickyHeader
+        height={500}
+        rowStyle="outline"
+        keyboardNav="cells"
+        enableSelection
+        selectedRowIds={selectedRowIds}
+        onSelectionChange={(selectedIds) => {
+          setSelectedRowIds(selectedIds);
+        }}
+        enableRowNumbers
+        enableRowPinning
+        enableRowReorder
+        enableColumnDragToPin
+        enableColumnSettings
+        // enableColumnHeaderReorder
+        editingEnabled
+        spreadsheetDefaults={{
+          enabled: true,
+          rangeSelection: { enabled: true },
+          fillHandle: { enabled: true },
+        }}
+        // rowOrder={}
+        // displayMode="cards"
+        // theme="dark"
+        // disableSearch
+        // enableDensityToggle={false}
+        // enableDownloadMenu={false}
       />
     </main>
   );
