@@ -1,11 +1,6 @@
-import { IntegrationCredentials } from "./IntegrationCredentials";
+import * as React from "react";
 import { RivetGrid, formatCellValue, type Column } from "@rivetgrid/rivetgrid";
 import "@rivetgrid/rivetgrid/styles.css";
-import { RichCellIdentityExample } from "./RichCells";
-import { MediaCellsDemo } from "./RichCells2";
-import { RowActionsExample } from "./RowNumbersActions";
-import { General } from "./General";
-import { SpreadsheetEditingExample } from "./Editing";
 
 type ProductRow = {
   id: string;
@@ -183,65 +178,32 @@ function pickColumns(...ids: string[]) {
   return ids.map((id) => allColumns.find((column) => column.id === id)!);
 }
 
-function ProductTable() {
-  const columns = pickColumns("product", "owner", "status").map((column) => ({
-    ...column,
-    sortable: true,
-    searchable: true,
-    resizable: true,
-  }));
+export function RowActionsExample() {
+  const rowActions = React.useMemo(
+    () => [
+      { id: "open", label: "Open", onClick: () => undefined },
+      { id: "dupe", label: "Duplicate", onClick: () => undefined },
+      {
+        id: "archive",
+        label: "Archive",
+        danger: true,
+        onClick: () => undefined,
+      },
+    ],
+    [],
+  );
 
   return (
     <RivetGrid
-      ariaLabel="Products"
-      columns={columns}
+      ariaLabel="Documentation row numbers and actions"
+      columns={pickColumns("product", "owner", "status", "priority")}
       rows={rows}
       getRowId={(row) => row.id}
-      height={304}
-      stickyHeader
-      density="medium"
-      rowStyle="outline"
-      enableDensityToggle
-      enableDownloadMenu
-      enableColumnSettings={false}
-      enableGrouping={false}
+      height={256}
+      enableRowNumbers
+      rowActions={rowActions}
+      rowActionsWidth={44}
+      enableSearch={false}
     />
-  );
-}
-
-export default function App() {
-  return (
-    <div
-      style={{
-        width: "800px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: "60px",
-        margin: "0 auto",
-      }}
-    >
-      <div>
-        <h3>General Table</h3> <General />
-      </div>
-      <div>
-        <h3>Product Table</h3> <ProductTable />
-      </div>
-      <div>
-        <h3>Password cell format</h3> <IntegrationCredentials />
-      </div>
-      <div>
-        <h3>Rich cells</h3> <RichCellIdentityExample />
-      </div>
-      <div>
-        <h3>Avatars, thumbnails, and images</h3> <MediaCellsDemo />
-      </div>
-      <div>
-        <h3>Row Numbers and Actions</h3> <RowActionsExample />
-      </div>
-      <div>
-        <h3>Editing</h3> <SpreadsheetEditingExample />
-      </div>
-    </div>
   );
 }

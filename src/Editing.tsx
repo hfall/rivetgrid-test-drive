@@ -1,11 +1,5 @@
-import { IntegrationCredentials } from "./IntegrationCredentials";
+import * as React from "react";
 import { RivetGrid, formatCellValue, type Column } from "@rivetgrid/rivetgrid";
-import "@rivetgrid/rivetgrid/styles.css";
-import { RichCellIdentityExample } from "./RichCells";
-import { MediaCellsDemo } from "./RichCells2";
-import { RowActionsExample } from "./RowNumbersActions";
-import { General } from "./General";
-import { SpreadsheetEditingExample } from "./Editing";
 
 type ProductRow = {
   id: string;
@@ -183,65 +177,37 @@ function pickColumns(...ids: string[]) {
   return ids.map((id) => allColumns.find((column) => column.id === id)!);
 }
 
-function ProductTable() {
-  const columns = pickColumns("product", "owner", "status").map((column) => ({
-    ...column,
-    sortable: true,
-    searchable: true,
-    resizable: true,
-  }));
+export function SpreadsheetEditingExample() {
+  const [editableRows, setEditableRows] = React.useState(rows);
+  const onCommitCell = (rowId: string, columnId: string, value: unknown) => {
+    setEditableRows((current) =>
+      current.map((row) =>
+        row.id === rowId ? { ...row, [columnId]: value } : row,
+      ),
+    );
+  };
 
   return (
     <RivetGrid
-      ariaLabel="Products"
-      columns={columns}
-      rows={rows}
+      ariaLabel="Documentation editing"
+      columns={pickColumns("product", "owner", "status", "progress", "price")}
+      rows={editableRows}
       getRowId={(row) => row.id}
-      height={304}
-      stickyHeader
-      density="medium"
-      rowStyle="outline"
-      enableDensityToggle
-      enableDownloadMenu
-      enableColumnSettings={false}
-      enableGrouping={false}
-    />
-  );
-}
-
-export default function App() {
-  return (
-    <div
-      style={{
-        width: "800px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: "60px",
-        margin: "0 auto",
+      keyboardNav="cells"
+      editingEnabled
+      spreadsheetDefaults={{
+        enabled: true,
+        rangeSelection: { enabled: true },
+        fillHandle: { enabled: true },
+        validateCell: (_rowId, columnId, value) =>
+          columnId === "progress" && (Number(value) < 0 || Number(value) > 100)
+            ? { valid: false, error: "Progress must stay between 0 and 100." }
+            : { valid: true },
+        onCommitCell,
       }}
-    >
-      <div>
-        <h3>General Table</h3> <General />
-      </div>
-      <div>
-        <h3>Product Table</h3> <ProductTable />
-      </div>
-      <div>
-        <h3>Password cell format</h3> <IntegrationCredentials />
-      </div>
-      <div>
-        <h3>Rich cells</h3> <RichCellIdentityExample />
-      </div>
-      <div>
-        <h3>Avatars, thumbnails, and images</h3> <MediaCellsDemo />
-      </div>
-      <div>
-        <h3>Row Numbers and Actions</h3> <RowActionsExample />
-      </div>
-      <div>
-        <h3>Editing</h3> <SpreadsheetEditingExample />
-      </div>
-    </div>
+      richCells={{ enabled: true }}
+      enableColumnSettings
+      enableSearch={false}
+    />
   );
 }
