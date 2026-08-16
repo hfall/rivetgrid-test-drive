@@ -207,7 +207,8 @@ export function SpreadsheetEditingExample() {
       }}
       richCells={{ enabled: true }}
       enableColumnSettings
-      enableSearch={false}
+      // enableSearch={false}
+      disableSearch
     />
   );
 }

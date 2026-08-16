@@ -173,7 +173,7 @@ export function RichCellIdentityExample() {
       stickyHeader
       density="medium"
       rowStyle="outline"
-      enableSearch={false}
+      // enableSearch={false}
     />
   );
 }

@@ -112,11 +112,12 @@ const mediaColumns: Column<MediaRow>[] = [
 ];
 
 export function MediaCellsDemo() {
-  const [rows, setRows] = React.useState(initialRows);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [rows, setRows] = React.useState<any[]>(initialRows);
   const spreadsheetDefaults = React.useMemo(
     () => ({
       enabled: true,
-      onCommitCell: (rowId, columnId, value) => {
+      onCommitCell: (rowId: string, columnId: string, value: unknown) => {
         setRows((current) =>
           current.map((row) => {
             if (row.id !== rowId) return row;

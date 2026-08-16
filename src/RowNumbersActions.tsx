@@ -203,7 +203,7 @@ export function RowActionsExample() {
       enableRowNumbers
       rowActions={rowActions}
       rowActionsWidth={44}
-      enableSearch={false}
+      // enableSearch={false}
     />
   );
 }
