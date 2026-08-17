@@ -33,7 +33,7 @@ const columns: Column<Post>[] = [
   {
     id: "body",
     header: "Post",
-    accessor: (row) => `$${row.body}`,
+    accessor: (row) => `${row.body}`,
     sortable: true,
     searchable: true,
     resizable: true,
