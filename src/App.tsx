@@ -6,6 +6,7 @@ import { MediaCellsDemo } from "./RichCells2";
 import { RowActionsExample } from "./RowNumbersActions";
 import { General } from "./General";
 import { SpreadsheetEditingExample } from "./Editing";
+import { CustomTable } from "./BuilderExample";
 
 type ProductRow = {
   id: string;
@@ -221,6 +222,9 @@ export default function App() {
         margin: "0 auto",
       }}
     >
+      <div>
+        <h3>Custom Table From Builder</h3> <CustomTable />
+      </div>
       <div>
         <h3>General Table</h3> <General />
       </div>
