@@ -74,7 +74,9 @@ export function General() {
         onCommitCell: (rowId: string, columnId: string, value: unknown) => {
           setEditableRows((current) =>
             current.map((row) =>
-              row.id.toString() === rowId ? { ...row, [columnId]: value } : row,
+              row.id.toString() === rowId
+                ? { ...row, [columnId]: value ?? "" }
+                : row,
             ),
           );
         },
