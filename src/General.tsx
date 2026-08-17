@@ -13,9 +13,12 @@ const posts = data as Post[];
 
 const columns: Column<Post>[] = [
   {
-    id: "user",
+    id: "userId",
     header: "User Id",
     accessor: (row) => row.userId,
+    type: "number",
+    filterType: "number",
+    isNumeric: true,
     sortable: true,
     searchable: true,
     resizable: true,
@@ -71,13 +74,18 @@ export function General() {
         enabled: true,
         rangeSelection: { enabled: true },
         fillHandle: { enabled: true },
+        structuralEditing: {
+          enabled: true,
+        },
         onCommitCell: (rowId: string, columnId: string, value: unknown) => {
+          // console.log(rowId, columnId, value);
           setEditableRows((current) =>
-            current.map((row) =>
-              row.id.toString() === rowId
+            current.map((row) => {
+              console.log(row.id.toString() === rowId, row);
+              return row.id.toString() === rowId
                 ? { ...row, [columnId]: value ?? "" }
-                : row,
-            ),
+                : row;
+            }),
           );
         },
       }}
