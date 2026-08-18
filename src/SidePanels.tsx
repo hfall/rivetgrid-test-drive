@@ -1,17 +1,11 @@
-import { IntegrationCredentials } from "./IntegrationCredentials";
-import { RivetGrid, formatCellValue, type Column } from "@rivetgrid/rivetgrid";
+import * as React from "react";
+import {
+  RivetGrid,
+  formatCellValue,
+  type Column,
+  DetailPreviewPanel,
+} from "@rivetgrid/rivetgrid";
 import "@rivetgrid/rivetgrid/styles.css";
-import { RichCellIdentityExample } from "./RichCells";
-import { MediaCellsDemo } from "./RichCells2";
-import { RowActionsExample } from "./RowNumbersActions";
-import { General } from "./General";
-import { SpreadsheetEditingExample } from "./Editing";
-import { CustomTable } from "./BuilderExample";
-import { TreeView } from "./TreeView";
-import { CRMTable } from "./MergeCells";
-import { SidePanelExample } from "./SidePanels";
-import { Aggregations } from "./Aggregation";
-// import { EditingTable } from "./BulkEdits";
 
 type ProductRow = {
   id: string;
@@ -189,83 +183,75 @@ function pickColumns(...ids: string[]) {
   return ids.map((id) => allColumns.find((column) => column.id === id)!);
 }
 
-function ProductTable() {
-  const columns = pickColumns("product", "owner", "status").map((column) => ({
-    ...column,
-    sortable: true,
-    searchable: true,
-    resizable: true,
-  }));
-
-  return (
-    <RivetGrid
-      ariaLabel="Products"
-      columns={columns}
-      rows={rows}
-      getRowId={(row) => row.id}
-      height={304}
-      stickyHeader
-      density="medium"
-      rowStyle="outline"
-      enableDensityToggle
-      enableDownloadMenu
-      enableColumnSettings={false}
-      enableGrouping={false}
-    />
+export function SidePanelExample() {
+  const [previewRow, setPreviewRow] = React.useState<ProductRow | null>(
+    rows[0],
   );
-}
+  const previewIndex = previewRow
+    ? rows.findIndex((row) => row.id === previewRow.id)
+    : -1;
+  const previousRow = previewIndex > 0 ? rows[previewIndex - 1] : null;
+  const nextRow =
+    previewIndex >= 0 && previewIndex < rows.length - 1
+      ? rows[previewIndex + 1]
+      : null;
+  const previewSections = [
+    {
+      id: "review",
+      title: "Review",
+      fields: [
+        { id: "owner", label: "Owner", value: previewRow?.owner ?? "None" },
+        { id: "status", label: "Status", value: previewRow?.status ?? "None" },
+        { id: "region", label: "Region", value: previewRow?.region ?? "None" },
+        {
+          id: "progress",
+          label: "Progress",
+          value: previewRow ? `${previewRow.progress}%` : "0%",
+        },
+      ],
+    },
+  ];
 
-export default function App() {
   return (
-    <div
-      style={{
-        width: "800px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        gap: "60px",
-        margin: "0 auto 100px",
-      }}
-    >
-      <div>
-        <h3>Custom Table From Builder</h3> <CustomTable />
-      </div>
-      <div>
-        <h3>General Table</h3> <General />
-      </div>
-      <div>
-        <h3>Product Table</h3> <ProductTable />
-      </div>
-      <div>
-        <h3>Password cell format</h3> <IntegrationCredentials />
-      </div>
-      <div>
-        <h3>Rich cells</h3> <RichCellIdentityExample />
-      </div>
-      <div>
-        <h3>Avatars, thumbnails, and images</h3> <MediaCellsDemo />
-      </div>
-      <div>
-        <h3>Row Numbers and Actions</h3> <RowActionsExample />
-      </div>
-      <div>
-        <h3>Editing</h3> <SpreadsheetEditingExample />
-      </div>
-      <div>
-        <h3>TreeView</h3> <TreeView />
-      </div>
-      <div>
-        <h3>Merge Cells (CRM)</h3> <CRMTable />
-      </div>
-      <div>
-        <h3>Side Panel</h3> <SidePanelExample />
-      </div>
-      <div>
-        <h3>Aggregations</h3> <Aggregations />
-      </div>
-      {/* <div>
-        <h3>Bulk Edits</h3> <EditingTable />
-      </div> */}
+    <div style={{ position: "relative" }}>
+      <RivetGrid
+        ariaLabel="Documentation side panel table"
+        columns={pickColumns(
+          "product",
+          "owner",
+          "status",
+          "priority",
+          "progress",
+          "price",
+        )}
+        rows={rows}
+        getRowId={(row) => row.id}
+        height={304}
+        richCells={{ enabled: true }}
+        rowActions={[
+          { id: "preview", label: "Open side panel", onClick: setPreviewRow },
+        ]}
+        getRowState={(row) =>
+          row.id === previewRow?.id ? "highlighted" : "default"
+        }
+      />
+      <DetailPreviewPanel
+        open={previewRow !== null}
+        row={previewRow}
+        title={previewRow?.product ?? "Project preview"}
+        sections={previewSections}
+        onClose={() => setPreviewRow(null)}
+        previousAction={{
+          label: "Previous",
+          disabled: !previousRow,
+          onClick: () => previousRow && setPreviewRow(previousRow),
+        }}
+        nextAction={{
+          label: "Next",
+          disabled: !nextRow,
+          onClick: () => nextRow && setPreviewRow(nextRow),
+        }}
+      />
     </div>
   );
 }
