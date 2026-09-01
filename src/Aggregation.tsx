@@ -607,7 +607,7 @@ const initialColumns: Column<AccountRow>[] = allColumns
 
 export function Aggregations() {
   const [columns, setColumns] = React.useState(() => initialColumns);
-  const [rows, setRows] = React.useState(() => makeRows(1000));
+  const [rows, setRows] = React.useState(() => makeRows(100));
   const insertedColumnId = React.useRef(1);
   const insertedRowId = React.useRef(1);
 

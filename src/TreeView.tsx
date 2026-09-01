@@ -283,7 +283,7 @@ const initialColumns: Column<StarterRow>[] = allColumns
 
 export function TreeView() {
   const columns = initialColumns;
-  const rows = React.useMemo(() => makeRows(1000), []);
+  const rows = React.useMemo(() => makeRows(100), []);
   const [density, setDensity] = React.useState<
     "compact" | "medium" | "relaxed" | "spacious"
   >("medium");
