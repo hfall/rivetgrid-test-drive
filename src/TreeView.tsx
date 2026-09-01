@@ -1,11 +1,10 @@
 import * as React from "react";
 import {
-  RivetGrid,
   type Column,
   type FilteringState,
   type SortingState,
-} from "@rivetgrid/rivetgrid";
-import "@rivetgrid/rivetgrid/styles.css";
+} from "@rivetgrid/grid";
+import { RivetGridPro } from "@rivetgrid/pro";
 
 type StarterRow = {
   id: string;
@@ -269,10 +268,10 @@ function getFilterType(
 }
 
 const initialColumns: Column<StarterRow>[] = allColumns
-  .slice(0, 4)
-  .map((column, index) => ({
+  .slice(0, 7)
+  .map((column) => ({
     ...column,
-    pin: index === 0 ? ("left" as const) : undefined,
+    pin: undefined,
     resizable: column.resizable ?? true,
     sortable: column.sortable ?? true,
     searchable:
@@ -285,6 +284,9 @@ const initialColumns: Column<StarterRow>[] = allColumns
 export function TreeView() {
   const columns = initialColumns;
   const rows = React.useMemo(() => makeRows(1000), []);
+  const [density, setDensity] = React.useState<
+    "compact" | "medium" | "relaxed" | "spacious"
+  >("medium");
   const [filteringState, setFilteringState] = React.useState<FilteringState>({
     columnFilters: [],
     globalFilter: "",
@@ -292,14 +294,15 @@ export function TreeView() {
   const [sortingState, setSortingState] = React.useState<SortingState>([]);
 
   return (
-    <RivetGrid
+    <RivetGridPro
       ariaLabel="Custom table"
       columns={columns}
       rows={rows}
       getRowId={(row) => row.id}
       height={480}
       virtualization={{ enabled: true, overscan: 5 }}
-      density={"medium"}
+      density={density}
+      onDensityChange={setDensity}
       rowStyle="outline"
       theme="light"
       rivetGridWidthMode="fill"
@@ -313,14 +316,19 @@ export function TreeView() {
         setSortingState(event.next);
       }}
       enableDownloadMenu
+      enableDensityToggle
       enableColumnSettings
-      defaultColumnAggregationState={{ price: "sum" }}
+      enableSearch
+      enablePagination
+      defaultPageSize={25}
       enableGrouping={false}
-      enableTreeView
-      getRowChildren={(row) =>
-        (row as StarterRow & { children?: StarterRow[] }).children
-      }
       richCells={{ enabled: true }}
+      tree={{
+        enabled: true,
+        getChildren: (row) =>
+          (row as StarterRow & { children?: StarterRow[] }).children,
+      }}
+      enableRowNumbers
     />
   );
 }

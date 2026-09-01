@@ -1,707 +1,627 @@
-// /* eslint-disable @typescript-eslint/no-unused-vars */
-// import * as React from "react";
-// import {
-//   RivetGrid,
-//   type Column,
-//   type FilteringState,
-//   BULK_ROW_EDIT_ACTIONS_WIDTH,
-//   BulkRowEditActions,
-//   BulkRowEditCriticalTooltip,
-//   BulkRowEditDirtyFilterAction,
-//   BulkRowEditSaveAllAction,
-//   RowEditCell,
-//   useBulkRowEditCriticalHint,
-//   useEditingModel,
-// } from "@rivetgrid/rivetgrid";
-// import "@rivetgrid/rivetgrid/styles.css";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import * as React from "react";
+import { type Column } from "@rivetgrid/grid";
+import { RivetGridPro, type SavedView } from "@rivetgrid/pro";
+import "@rivetgrid/grid/styles.css";
+import "@rivetgrid/pro/styles.css";
 
-// type EditingRow = {
-//   id: string;
-//   product: string;
-//   owner: string;
-//   status: string;
-//   priority: string;
-//   channels: string[];
-//   labels: string[];
-//   kickoffDate: string;
-//   reviewTime: string;
-//   launchWindow: string;
-//   country: string;
-//   progress: number;
-//   price: number;
-// };
+type StarterRow = {
+  id: string;
+  category: string;
+  brand: string;
+  price: number;
+  change: number | null;
+  changePercent: number | null;
+  stock: number;
+  rating: number;
+  supplier: string;
+  status: "Active" | "Review" | "Paused";
+  progress: number;
+};
 
-// const allColumns: Column<EditingRow>[] = [
-//   {
-//     id: "product",
-//     header: "Product",
-//     accessor: (row) => row.product,
-//     type: "text",
-//     width: 132,
-//   },
-//   {
-//     id: "owner",
-//     header: "Owner",
-//     accessor: (row) => row.owner,
-//     type: "text",
-//     width: 112,
-//   },
-//   {
-//     id: "status",
-//     header: "Status",
-//     accessor: (row) => row.status,
-//     type: "enum",
-//     cellFormat: "enum",
-//     enumOptions: ["Active", "Review", "Paused"],
-//     width: 116,
-//   },
-//   {
-//     id: "priority",
-//     header: "Priority",
-//     accessor: (row) => row.priority,
-//     type: "enum",
-//     cellFormat: "enum",
-//     enumOptions: ["High", "Medium", "Low"],
-//     width: 116,
-//   },
-//   {
-//     id: "channels",
-//     header: "Select chips",
-//     accessor: (row) => row.channels,
-//     cellFormat: "multiSelect",
-//     enumOptions: [
-//       "Email",
-//       "In app",
-//       "Sales",
-//       "Support",
-//       "Web",
-//       "Partner",
-//       "Field",
-//     ],
-//     width: 184,
-//   },
-//   {
-//     id: "labels",
-//     header: "Tags",
-//     accessor: (row) => row.labels,
-//     cellFormat: "tags",
-//     width: 174,
-//   },
-//   {
-//     id: "kickoffDate",
-//     header: "Date",
-//     accessor: (row) => row.kickoffDate,
-//     type: "date",
-//     cellFormat: "date",
-//     width: 118,
-//   },
-//   {
-//     id: "reviewTime",
-//     header: "Time",
-//     accessor: (row) => row.reviewTime,
-//     type: "date",
-//     cellFormat: "time",
-//     width: 110,
-//   },
-//   {
-//     id: "launchWindow",
-//     header: "Date time",
-//     accessor: (row) => row.launchWindow,
-//     type: "date",
-//     cellFormat: "datetime",
-//     width: 166,
-//   },
-//   {
-//     id: "country",
-//     header: "Country",
-//     accessor: (row) => row.country,
-//     type: "enum",
-//     cellFormat: "enum",
-//     selectPreset: "country",
-//     enumOptions: ["US", "CA", "GB", "DE", "JP", "AU"],
-//     width: 136,
-//   },
-//   {
-//     id: "progress",
-//     header: "Progress",
-//     accessor: (row) => row.progress,
-//     type: "percentage",
-//     cellFormat: "percentage",
-//     isNumeric: true,
-//     align: "right",
-//     width: 118,
-//   },
-//   {
-//     id: "price",
-//     header: "Price",
-//     accessor: (row) => row.price,
-//     type: "currency",
-//     cellFormat: "currency",
-//     isNumeric: true,
-//     align: "right",
-//     width: 132,
-//   },
-// ];
+const allColumns: Column<StarterRow>[] = [
+  {
+    id: "category",
+    header: "Category",
+    accessor: (row) => row.category,
+    type: "text",
+    width: 200,
+    sortable: true,
+  },
+  {
+    id: "brand",
+    header: "Brand",
+    accessor: (row) => row.brand,
+    type: "text",
+    width: 200,
+    sortable: true,
+  },
+  {
+    id: "price",
+    header: "Price",
+    accessor: (row) => row.price,
+    type: "currency",
+    cellFormat: "currency",
+    align: "right",
+    isNumeric: true,
+    width: 150,
+    sortable: true,
+  },
+  {
+    id: "change",
+    header: "Change",
+    accessor: (row) => row.change,
+    type: "number",
+    align: "right",
+    isNumeric: true,
+    width: 150,
+    sortable: true,
+    priceAction: {},
+  },
+  {
+    id: "changePercent",
+    header: "Change %",
+    accessor: (row) => row.changePercent,
+    type: "percentage",
+    cellFormat: "percentage",
+    align: "right",
+    isNumeric: true,
+    width: 150,
+    sortable: true,
+    priceAction: { displayFormat: "percent" },
+  },
+  {
+    id: "stock",
+    header: "Stock",
+    accessor: (row) => row.stock,
+    type: "number",
+    align: "right",
+    isNumeric: true,
+    width: 92,
+    sortable: true,
+  },
+  {
+    id: "rating",
+    header: "Rating",
+    accessor: (row) => row.rating,
+    type: "number",
+    cellFormat: "rating",
+    align: "right",
+    isNumeric: true,
+    width: 104,
+    sortable: true,
+  },
+  {
+    id: "supplier",
+    header: "Supplier",
+    accessor: (row) => row.supplier,
+    type: "text",
+    width: 142,
+    sortable: true,
+  },
+  {
+    id: "status",
+    header: "Status",
+    accessor: (row) => row.status,
+    type: "enum",
+    cellFormat: "enum",
+    enumOptions: ["Active", "Review", "Paused"],
+    width: 118,
+    sortable: true,
+  },
+  {
+    id: "progress",
+    header: "Progress",
+    accessor: (row) => row.progress,
+    type: "percentage",
+    cellFormat: "percentage",
+    align: "right",
+    isNumeric: true,
+    width: 118,
+    sortable: true,
+  },
+];
 
-// const baseRows: EditingRow[] = [
-//   {
-//     id: "editing-1",
-//     product: "Atlas",
-//     owner: "Maya",
-//     status: "Active",
-//     priority: "High",
-//     channels: ["Email", "In app"],
-//     labels: ["Renewal", "Priority"],
-//     kickoffDate: "2026-07-08",
-//     reviewTime: "09:00",
-//     launchWindow: "2026-07-12T09:00",
-//     country: "US",
-//     progress: 82,
-//     price: 42000,
-//   },
-//   {
-//     id: "editing-2",
-//     product: "Pulse",
-//     owner: "Noah",
-//     status: "Review",
-//     priority: "Medium",
-//     channels: ["Sales", "Support"],
-//     labels: ["Pilot", "UX"],
-//     kickoffDate: "2026-07-09",
-//     reviewTime: "10:30",
-//     launchWindow: "2026-07-13T10:30",
-//     country: "CA",
-//     progress: 64,
-//     price: 31800,
-//   },
-//   {
-//     id: "editing-3",
-//     product: "Forge",
-//     owner: "Ari",
-//     status: "Paused",
-//     priority: "Low",
-//     channels: ["Web", "Partner"],
-//     labels: ["Ops", "Follow-up"],
-//     kickoffDate: "2026-07-10",
-//     reviewTime: "13:15",
-//     launchWindow: "2026-07-14T13:15",
-//     country: "GB",
-//     progress: 37,
-//     price: 18600,
-//   },
-//   {
-//     id: "editing-4",
-//     product: "Nova",
-//     owner: "Lena",
-//     status: "Active",
-//     priority: "Medium",
-//     channels: ["Field", "Email"],
-//     labels: ["Launch", "VIP"],
-//     kickoffDate: "2026-07-11",
-//     reviewTime: "15:45",
-//     launchWindow: "2026-07-15T15:45",
-//     country: "DE",
-//     progress: 91,
-//     price: 53500,
-//   },
-// ];
+const baseRows: StarterRow[] = [
+  {
+    id: "custom-1",
+    category: "Furniture",
+    brand: "TechLink",
+    price: 402.98,
+    change: 8.42,
+    changePercent: 5.6,
+    stock: 84,
+    rating: 4.8,
+    supplier: "Northstar",
+    status: "Active",
+    progress: 82,
+  },
+  {
+    id: "custom-2",
+    category: "Accessories",
+    brand: "ComfortPlus",
+    price: 329.31,
+    change: -3.11,
+    changePercent: -1.72,
+    stock: 132,
+    rating: 4.4,
+    supplier: "Atlas",
+    status: "Review",
+    progress: 68,
+  },
+  {
+    id: "custom-3",
+    category: "Audio",
+    brand: "ViewMaster",
+    price: 438.54,
+    change: 0,
+    changePercent: 0,
+    stock: 46,
+    rating: 4.6,
+    supplier: "Summit",
+    status: "Active",
+    progress: 91,
+  },
+  {
+    id: "custom-4",
+    category: "Office",
+    brand: "KeyStroke",
+    price: 488.64,
+    change: null,
+    changePercent: null,
+    stock: 24,
+    rating: 4.2,
+    supplier: "Northstar",
+    status: "Paused",
+    progress: 54,
+  },
+  {
+    id: "custom-5",
+    category: "Home",
+    brand: "DataVault",
+    price: 268.4,
+    change: -2.5,
+    changePercent: -0.85,
+    stock: 118,
+    rating: 4.7,
+    supplier: "Atlas",
+    status: "Active",
+    progress: 76,
+  },
+  {
+    id: "custom-6",
+    category: "Sports",
+    brand: "HomePro",
+    price: 352.54,
+    change: null,
+    changePercent: null,
+    stock: 69,
+    rating: 4.1,
+    supplier: "Summit",
+    status: "Review",
+    progress: 63,
+  },
+  {
+    id: "custom-7",
+    category: "Clothing",
+    brand: "FitLife",
+    price: 66.08,
+    change: 0.93,
+    changePercent: -0.57,
+    stock: 205,
+    rating: 4.5,
+    supplier: "Northstar",
+    status: "Active",
+    progress: 88,
+  },
+  {
+    id: "custom-8",
+    category: "Electronics",
+    brand: "SoundMax",
+    price: 137.5,
+    change: 4.42,
+    changePercent: -2.66,
+    stock: 97,
+    rating: 4.3,
+    supplier: "Atlas",
+    status: "Paused",
+    progress: 47,
+  },
+];
 
-// function makeRows(count: number): EditingRow[] {
-//   const flatRows = Array.from({ length: count }, (_, index) => ({
-//     ...baseRows[index % baseRows.length],
-//     id: "row-" + (index + 1),
-//   }));
-//   return flatRows;
-// }
+function makeRows(count: number): StarterRow[] {
+  const flatRows = Array.from({ length: count }, (_, index) => ({
+    ...baseRows[index % baseRows.length],
+    id: "row-" + (index + 1),
+  }));
+  return flatRows;
+}
 
-// function getFilterType(
-//   column: Column<EditingRow>,
-// ): Column<EditingRow>["filterType"] {
-//   if (
-//     column.cellType === "avatar" ||
-//     column.type === "image" ||
-//     column.cellFormat === "image"
-//   )
-//     return undefined;
-//   if (column.type === "enum") return "enum";
-//   if (column.type === "date") return "date";
-//   if (column.type === "currency" || column.cellFormat === "currency")
-//     return "currency";
-//   if (column.type === "percentage" || column.cellFormat === "percentage")
-//     return "percentage";
-//   if (column.type === "number" || column.isNumeric) return "number";
-//   return "text";
-// }
+const initialColumns: Column<StarterRow>[] = allColumns
+  .slice(0, 7)
+  .map((column) => ({
+    ...column,
+    pin: undefined,
+    resizable: column.resizable ?? true,
+    sortable: false,
+    searchable: false,
+    filterType: undefined,
+  }));
 
-// const STRUCTURAL_COLUMN_TYPES = [
-//   { id: "text", label: "Text" },
-//   { id: "number", label: "Number" },
-//   { id: "currency", label: "Currency" },
-//   { id: "percentage", label: "Percentage" },
-//   { id: "email", label: "Email" },
-//   { id: "phone", label: "Phone" },
-//   { id: "boolean", label: "Checkbox" },
-//   { id: "date", label: "Date" },
-//   { id: "time", label: "Time" },
-//   { id: "datetime", label: "Date & Time" },
-// ];
+export function BulkEdits() {
+  const [columns, _setColumns] = React.useState(() => initialColumns);
+  const [rows, setRows] = React.useState(() => makeRows(100));
 
-// function getColumnTypePatch(typeId: string): Partial<Column<EditingRow>> {
-//   if (typeId === "currency")
-//     return {
-//       type: "currency",
-//       filterType: "currency",
-//       cellFormat: "currency",
-//       isNumeric: true,
-//       align: "right",
-//       minWidth: 120,
-//     };
-//   if (typeId === "percentage")
-//     return {
-//       type: "percentage",
-//       filterType: "percentage",
-//       cellFormat: "percentage",
-//       isNumeric: true,
-//       align: "right",
-//       minWidth: 120,
-//     };
-//   if (typeId === "number")
-//     return {
-//       type: "number",
-//       filterType: "number",
-//       isNumeric: true,
-//       align: "right",
-//       minWidth: 100,
-//     };
-//   if (typeId === "email")
-//     return { type: "email", filterType: "email", align: "left", minWidth: 180 };
-//   if (typeId === "phone")
-//     return { type: "phone", filterType: "phone", align: "left", minWidth: 140 };
-//   if (typeId === "boolean")
-//     return {
-//       type: "boolean",
-//       filterType: "boolean",
-//       cellFormat: "boolean",
-//       align: "center",
-//       minWidth: 100,
-//     };
-//   if (typeId === "date")
-//     return {
-//       type: "date",
-//       filterType: "date",
-//       cellFormat: "date",
-//       align: "left",
-//       minWidth: 120,
-//     };
-//   if (typeId === "time")
-//     return {
-//       filterType: "time",
-//       cellFormat: "time",
-//       align: "left",
-//       minWidth: 120,
-//     };
-//   if (typeId === "datetime")
-//     return {
-//       filterType: "datetime",
-//       cellFormat: "datetime",
-//       align: "left",
-//       minWidth: 160,
-//     };
-//   return { type: "text", filterType: "text", align: "left", minWidth: 120 };
-// }
+  const updateRow = React.useCallback(
+    (
+      current: StarterRow[],
+      rowId: string,
+      columnId: string,
+      value: unknown,
+    ): StarterRow[] => {
+      return current.map((row) => {
+        if (row.id === rowId) {
+          return { ...row, [columnId]: value } as StarterRow;
+        }
+        const children = (row as StarterRow & { children?: StarterRow[] })
+          .children;
+        return children?.length
+          ? ({
+              ...row,
+              children: updateRow(children, rowId, columnId, value),
+            } as StarterRow)
+          : row;
+      });
+    },
+    [],
+  );
 
-// function mapRows(
-//   rows: EditingRow[],
-//   update: (row: EditingRow) => EditingRow,
-// ): EditingRow[] {
-//   return rows.map((row) => {
-//     const next = update(row);
-//     const children = (next as EditingRow & { children?: EditingRow[] })
-//       .children;
-//     return children?.length
-//       ? ({ ...next, children: mapRows(children, update) } as EditingRow)
-//       : next;
-//   });
-// }
+  const [filterDirtyRows, setFilterDirtyRows] = React.useState(false);
+  const [editingRowId, setEditingRowId] = React.useState<string | null>(null);
+  const [editingColId, setEditingColId] = React.useState<string | null>(null);
+  const editButtonRefs = React.useRef<Record<string, HTMLButtonElement | null>>(
+    {},
+  );
+  const [drafts, setDrafts] = React.useState<
+    Record<string, Partial<StarterRow>>
+  >({});
+  const [invalidDraftInputs, setInvalidDraftInputs] = React.useState<
+    Record<string, string>
+  >({});
 
-// function insertRow(
-//   rows: EditingRow[],
-//   rowId: string,
-//   position: "above" | "below",
-//   nextRow: EditingRow,
-// ): { rows: EditingRow[]; inserted: boolean } {
-//   const anchorIndex = rows.findIndex((row) => row.id === rowId);
-//   if (anchorIndex >= 0) {
-//     const insertIndex = position === "above" ? anchorIndex : anchorIndex + 1;
-//     return {
-//       rows: [
-//         ...rows.slice(0, insertIndex),
-//         nextRow,
-//         ...rows.slice(insertIndex),
-//       ],
-//       inserted: true,
-//     };
-//   }
-//   for (let index = 0; index < rows.length; index += 1) {
-//     const children = (rows[index] as EditingRow & { children?: EditingRow[] })
-//       .children;
-//     if (!children?.length) continue;
-//     const nested = insertRow(children, rowId, position, nextRow);
-//     if (!nested.inserted) continue;
-//     const nextRows = [...rows];
-//     nextRows[index] = { ...rows[index], children: nested.rows } as EditingRow;
-//     return { rows: nextRows, inserted: true };
-//   }
-//   return { rows, inserted: false };
-// }
+  const dirtyRowIds = Object.keys(drafts);
+  const returnFocusToEdit = React.useCallback((rowId: string) => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        window.setTimeout(() => {
+          const sameRowEditButton = editButtonRefs.current[rowId];
+          const focusTarget = sameRowEditButton?.isConnected
+            ? sameRowEditButton
+            : Object.values(editButtonRefs.current).find(
+                (button) => button?.isConnected,
+              );
+          focusTarget?.focus();
+        }, 0);
+      });
+    });
+  }, []);
+  const isNumericColumn = React.useCallback(
+    (column: Column<StarterRow>) =>
+      column.isNumeric ||
+      column.type === "number" ||
+      column.type === "currency" ||
+      column.type === "percentage" ||
+      column.cellFormat === "currency" ||
+      column.cellFormat === "percentage",
+    [],
+  );
+  const updateDraft = React.useCallback(
+    (
+      rowId: string,
+      column: Column<StarterRow>,
+      rawValue: string | string[],
+    ) => {
+      const columnId = column.id;
+      const key = rowId + ":" + columnId;
+      const invalidNumericValue =
+        typeof rawValue === "string" &&
+        isNumericColumn(column) &&
+        (!rawValue.trim() || !Number.isFinite(Number(rawValue)));
+      if (invalidNumericValue) {
+        setInvalidDraftInputs((current) => ({ ...current, [key]: rawValue }));
+        return;
+      }
+      setInvalidDraftInputs((current) => {
+        const { [key]: _cleared, ...remaining } = current;
+        return remaining;
+      });
+      const value =
+        typeof rawValue === "string" && isNumericColumn(column)
+          ? Number(rawValue)
+          : rawValue;
 
-// function deleteRow(rows: EditingRow[], rowId: string): EditingRow[] {
-//   return rows
-//     .filter((row) => row.id !== rowId)
-//     .map((row) => {
-//       const children = (row as EditingRow & { children?: EditingRow[] })
-//         .children;
-//       return children?.length
-//         ? ({ ...row, children: deleteRow(children, rowId) } as EditingRow)
-//         : row;
-//     });
-// }
+      setDrafts((current) => ({
+        ...current,
+        [rowId]: {
+          ...current[rowId],
+          [columnId]: value,
+        } as Partial<StarterRow>,
+      }));
+    },
+    [isNumericColumn],
+  );
+  const saveDraft = React.useCallback(
+    (rowId: string) => {
+      const patch = drafts[rowId];
+      if (!patch) return;
+      if (
+        Object.keys(invalidDraftInputs).some((key) =>
+          key.startsWith(rowId + ":"),
+        )
+      )
+        return;
 
-// function countRows(rows: EditingRow[]): number {
-//   return rows.reduce((count, row) => {
-//     const children =
-//       (row as EditingRow & { children?: EditingRow[] }).children ?? [];
-//     return count + 1 + countRows(children);
-//   }, 0);
-// }
+      setRows((current) =>
+        Object.entries(patch).reduce(
+          (nextRows, [columnId, value]) =>
+            updateRow(nextRows, rowId, columnId, value),
+          current,
+        ),
+      );
+      setDrafts((current) => {
+        const { [rowId]: _saved, ...remaining } = current;
+        return remaining;
+      });
+      setEditingRowId(null);
+      setEditingColId(null);
+      returnFocusToEdit(rowId);
+    },
+    [drafts, invalidDraftInputs, returnFocusToEdit, updateRow],
+  );
+  const discardDraft = React.useCallback(
+    (rowId: string) => {
+      setDrafts((current) => {
+        const { [rowId]: _discarded, ...remaining } = current;
+        return remaining;
+      });
+      setInvalidDraftInputs((current) =>
+        Object.fromEntries(
+          Object.entries(current).filter(
+            ([key]) => !key.startsWith(rowId + ":"),
+          ),
+        ),
+      );
+      setEditingRowId(null);
+      setEditingColId(null);
+      returnFocusToEdit(rowId);
+    },
+    [returnFocusToEdit],
+  );
+  const startRowEdit = React.useCallback(
+    (rowId: string) => {
+      setEditingRowId(rowId);
+      setEditingColId(columns[0]?.id ?? null);
+    },
+    [columns],
+  );
+  const saveAllDrafts = React.useCallback(() => {
+    dirtyRowIds.forEach((rowId) => saveDraft(rowId));
+  }, [dirtyRowIds, saveDraft]);
+  const dirtyRowIdSet = React.useMemo(
+    () => new Set(dirtyRowIds),
+    [dirtyRowIds],
+  );
+  const visibleRows =
+    filterDirtyRows && dirtyRowIds.length > 0
+      ? rows.filter((row) => dirtyRowIdSet.has(row.id))
+      : rows;
+  React.useEffect(() => {
+    if (filterDirtyRows && dirtyRowIds.length === 0) setFilterDirtyRows(false);
+  }, [dirtyRowIds.length, filterDirtyRows]);
+  const renderBulkRowActions = React.useCallback(
+    (row: StarterRow) => {
+      const isEditing = editingRowId === row.id;
+      const isDirty = Boolean(drafts[row.id]);
+      const hasRowError = Object.keys(invalidDraftInputs).some((key) =>
+        key.startsWith(row.id + ":"),
+      );
+      return (
+        <div role="group" aria-label={"Edit row " + row.id}>
+          {!isEditing ? (
+            <button
+              type="button"
+              ref={(button) => {
+                editButtonRefs.current[row.id] = button;
+              }}
+              onClick={() => startRowEdit(row.id)}
+            >
+              Edit
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => saveDraft(row.id)}
+                disabled={!isDirty || hasRowError}
+              >
+                Save
+              </button>
+              <button type="button" onClick={() => discardDraft(row.id)}>
+                Cancel
+              </button>
+            </>
+          )}
+        </div>
+      );
+    },
+    [
+      drafts,
+      editingRowId,
+      startRowEdit,
+      saveDraft,
+      discardDraft,
+      invalidDraftInputs,
+    ],
+  );
+  const bulkEditColumns = React.useMemo(
+    () =>
+      columns.map((column) => ({
+        ...column,
+        accessor: (row: StarterRow) => {
+          const draft = drafts[row.id];
+          const value =
+            draft?.[column.id as keyof StarterRow] ??
+            (row as unknown as Record<string, unknown>)[column.id];
+          if (editingRowId !== row.id) return column.accessor(row);
+          const ariaLabel = String(column.header);
+          const commitOnKey = (
+            event: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>,
+          ) => {
+            if (event.key === "Enter") saveDraft(row.id);
+            if (event.key === "Escape") discardDraft(row.id);
+          };
+          const key = row.id + ":" + column.id;
+          const errorMessage = invalidDraftInputs[key]
+            ? "Enter a finite number before saving."
+            : null;
+          const errorMessageId = "error-" + row.id + "-" + column.id;
+          const showError = errorMessage ? (
+            <p id={errorMessageId} role="alert">
+              {errorMessage}
+            </p>
+          ) : null;
+          if (column.enumOptions?.length) {
+            return (
+              <>
+                <select
+                  aria-label={ariaLabel}
+                  aria-invalid={errorMessage ? "true" : undefined}
+                  aria-describedby={errorMessage ? errorMessageId : undefined}
+                  value={value == null ? "" : String(value)}
+                  onChange={(event) =>
+                    updateDraft(row.id, column, event.target.value)
+                  }
+                  onFocus={() => setEditingColId(column.id)}
+                  onKeyDown={commitOnKey}
+                >
+                  {column.enumOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+                {showError}
+              </>
+            );
+          }
+          const collectionEditor =
+            column.cellFormat === "multiSelect" || column.cellFormat === "tags";
+          const inputType =
+            column.cellFormat === "date"
+              ? "date"
+              : column.cellFormat === "time"
+                ? "time"
+                : column.cellFormat === "datetime"
+                  ? "datetime-local"
+                  : "text";
+          return (
+            <>
+              <input
+                type={inputType}
+                aria-label={
+                  collectionEditor
+                    ? ariaLabel + " (comma-separated values)"
+                    : ariaLabel
+                }
+                aria-invalid={errorMessage ? "true" : undefined}
+                aria-describedby={errorMessage ? errorMessageId : undefined}
+                value={
+                  invalidDraftInputs[key] ??
+                  (Array.isArray(value)
+                    ? value.join(", ")
+                    : value == null
+                      ? ""
+                      : String(value))
+                }
+                onChange={(event) =>
+                  updateDraft(
+                    row.id,
+                    column,
+                    collectionEditor
+                      ? event.target.value
+                          .split(",")
+                          .map((item) => item.trim())
+                          .filter(Boolean)
+                      : event.target.value,
+                  )
+                }
+                onFocus={() => setEditingColId(column.id)}
+                onKeyDown={commitOnKey}
+              />
+              {showError}
+            </>
+          );
+        },
+      })),
+    [
+      columns,
+      drafts,
+      editingRowId,
+      saveDraft,
+      discardDraft,
+      updateDraft,
+      invalidDraftInputs,
+    ],
+  );
+  const [views, setViews] = React.useState<SavedView[]>([
+    { id: "default", name: "Default", state: {} },
+    { id: "builder-starter", name: "Builder starter", state: {} },
+  ]);
 
-// const customizedColumns: Column<EditingRow>[] = [
-//   allColumns.find((column) => column.id === "product")!,
-//   allColumns.find((column) => column.id === "owner")!,
-//   allColumns.find((column) => column.id === "status")!,
-//   allColumns.find((column) => column.id === "progress")!,
-//   allColumns.find((column) => column.id === "price")!,
-// ];
-
-// const initialColumns: Column<EditingRow>[] = customizedColumns.map(
-//   (column, index) => ({
-//     ...column,
-//     pin: undefined,
-//     resizable: column.resizable ?? true,
-//     sortable: false,
-//     searchable:
-//       column.cellType === "avatar" || column.type === "image"
-//         ? false
-//         : (column.searchable ?? true),
-//     filterType: getFilterType(column),
-//   }),
-// );
-
-// export function EditingTable() {
-//   const [columns, setColumns] = React.useState(() => initialColumns);
-//   const [rows, setRows] = React.useState(() => makeRows(100));
-//   const insertedColumnId = React.useRef(1);
-//   const insertedRowId = React.useRef(1);
-
-//   const updateRow = React.useCallback(
-//     (
-//       current: EditingRow[],
-//       rowId: string,
-//       columnId: string,
-//       value: unknown,
-//     ): EditingRow[] => {
-//       return current.map((row) => {
-//         if (row.id === rowId) {
-//           return { ...row, [columnId]: value } as EditingRow;
-//         }
-//         const children = (row as EditingRow & { children?: EditingRow[] })
-//           .children;
-//         return children?.length
-//           ? ({
-//               ...row,
-//               children: updateRow(children, rowId, columnId, value),
-//             } as EditingRow)
-//           : row;
-//       });
-//     },
-//     [],
-//   );
-//   const handleCommitCell = React.useCallback(
-//     (rowId: string, columnId: string, value: unknown) => {
-//       setRows((current) => {
-//         return updateRow(current, rowId, columnId, value);
-//       });
-//     },
-//     [updateRow],
-//   );
-
-//   const gridRootRef = React.useRef<HTMLDivElement>(null);
-//   const [filterDirtyRows, setFilterDirtyRows] = React.useState(false);
-//   const editableColumnIds = React.useMemo(
-//     () => columns.map((column) => column.id),
-//     [columns],
-//   );
-//   const rowsById = React.useMemo(
-//     () => new Map(rows.map((row) => [row.id, row])),
-//     [rows],
-//   );
-//   const getRecordValue = React.useCallback(
-//     (rowId: string, columnId: string) => {
-//       const row = rowsById.get(rowId);
-//       return row
-//         ? (row as unknown as Record<string, unknown>)[columnId]
-//         : undefined;
-//     },
-//     [rowsById],
-//   );
-//   const editing = useEditingModel<EditingRow>({
-//     enabled: true,
-//     getRowId: (row) => row.id,
-//     getRecordValue,
-//     editableColumns: editableColumnIds,
-//     rowEditEscapeBehavior: "exit-row",
-//     rootElementRef: gridRootRef,
-//     onSaveRow: async (rowId, patch) => {
-//       setRows((current) =>
-//         Object.entries(patch).reduce(
-//           (nextRows, [columnId, value]) =>
-//             updateRow(nextRows, rowId, columnId, value),
-//           current,
-//         ),
-//       );
-//       return { success: true };
-//     },
-//     onCommitAll: async (patches) => {
-//       setRows((current) =>
-//         Array.from(patches.entries()).reduce(
-//           (nextRows, [rowId, patch]) =>
-//             Object.entries(patch).reduce(
-//               (patchedRows, [columnId, value]) =>
-//                 updateRow(patchedRows, rowId, columnId, value),
-//               nextRows,
-//             ),
-//           current,
-//         ),
-//       );
-//     },
-//   });
-//   const bulkEditHint = useBulkRowEditCriticalHint();
-//   const dirtyRowIds = editing.dirty.dirtyRowIds;
-//   const dirtyRowIdSet = React.useMemo(
-//     () => new Set(dirtyRowIds),
-//     [dirtyRowIds],
-//   );
-//   const visibleRows =
-//     filterDirtyRows && dirtyRowIds.length > 0
-//       ? rows.filter((row) => dirtyRowIdSet.has(row.id))
-//       : rows;
-//   React.useEffect(() => {
-//     if (filterDirtyRows && dirtyRowIds.length === 0) setFilterDirtyRows(false);
-//   }, [dirtyRowIds.length, filterDirtyRows]);
-
-//   const bulkEditColumns = React.useMemo(
-//     () =>
-//       columns.map((column) => ({
-//         ...column,
-//         accessor: (row: EditingRow) => {
-//           const isDirty = editing.dirty.isCellDirty(row.id, column.id);
-//           const value = editing.getDisplayValue(row.id, column.id);
-//           const readDisplayValue = isDirty ? undefined : column.accessor(row);
-//           const readDisplayTextValue = isDirty ? value : readDisplayValue;
-//           const index = editableColumnIds.indexOf(column.id);
-//           return (
-//             <RowEditCell
-//               rowId={row.id}
-//               colId={column.id}
-//               value={value}
-//               readDisplayValue={readDisplayValue}
-//               readDisplayTextValue={
-//                 typeof readDisplayTextValue === "string" ||
-//                 typeof readDisplayTextValue === "number"
-//                   ? String(readDisplayTextValue)
-//                   : undefined
-//               }
-//               columnHeader={
-//                 typeof column.header === "string"
-//                   ? column.header
-//                   : (column.label ?? column.id)
-//               }
-//               isRowEditing={editing.isRowEditing(row.id)}
-//               isFocused={
-//                 editing.editingState.activeRowId === row.id &&
-//                 editing.editingState.activeColId === column.id
-//               }
-//               isDirty={isDirty}
-//               error={editing.getCellError(row.id, column.id)}
-//               isSaving={editing.getRowAsyncState(row.id).status === "saving"}
-//               isNumeric={column.isNumeric}
-//               enumOptions={column.enumOptions}
-//               selectPreset={column.selectPreset}
-//               isCurrency={column.type === "currency"}
-//               isBoolean={column.type === "boolean"}
-//               cellFormat={
-//                 column.cellFormat && column.cellFormat !== "link"
-//                   ? column.cellFormat
-//                   : undefined
-//               }
-//               currency={column.currency}
-//               timeFormat={column.timeFormat}
-//               onValueChange={(nextValue) =>
-//                 editing.updateRowCell(column.id, nextValue)
-//               }
-//               onFocus={() => editing.setRowFocusedCell(column.id)}
-//               onTabNext={() =>
-//                 editing.setRowFocusedCell(
-//                   editableColumnIds[
-//                     Math.min(index + 1, editableColumnIds.length - 1)
-//                   ] ?? null,
-//                 )
-//               }
-//               onTabPrev={() =>
-//                 editing.setRowFocusedCell(
-//                   editableColumnIds[Math.max(index - 1, 0)] ?? null,
-//                 )
-//               }
-//               onEscape={() => editing.exitEdit()}
-//               onSave={() => void editing.saveRow()}
-//               onCommitCellToGrid={() => editing.setRowFocusedCell(null)}
-//               onInactiveEditIntent={() =>
-//                 bulkEditHint.showCriticalEditHint(row.id)
-//               }
-//             />
-//           );
-//         },
-//       })),
-//     [columns, editableColumnIds, editing, getRecordValue, bulkEditHint],
-//   );
-//   const enterBulkRowEdit = React.useCallback(
-//     (rowId: string) => {
-//       const row = Array.from(
-//         gridRootRef.current?.querySelectorAll<HTMLTableRowElement>(
-//           "tr[data-row-id]",
-//         ) ?? [],
-//       ).find((candidate) => candidate.dataset.rowId === rowId);
-//       const scrollContainer =
-//         row?.closest<HTMLElement>('[data-rg-scroll="true"]') ?? null;
-//       const snapshot = scrollContainer
-//         ? { left: scrollContainer.scrollLeft, top: scrollContainer.scrollTop }
-//         : null;
-//       const restoreScroll = () => {
-//         if (
-//           !scrollContainer ||
-//           !snapshot ||
-//           !document.body.contains(scrollContainer)
-//         )
-//           return;
-//         scrollContainer.scrollLeft = snapshot.left;
-//         scrollContainer.scrollTop = snapshot.top;
-//       };
-//       editing.enterRowEdit(rowId, null);
-//       bulkEditHint.clearCriticalEditHint();
-//       restoreScroll();
-//       window.requestAnimationFrame(() => {
-//         restoreScroll();
-//         window.requestAnimationFrame(restoreScroll);
-//       });
-//     },
-//     [bulkEditHint, editing],
-//   );
-//   const renderBulkRowActions = React.useCallback(
-//     (row: EditingRow) => {
-//       const isRowEditing = editing.isRowEditing(row.id);
-//       return (
-//         <BulkRowEditActions
-//           isRowEditing={isRowEditing}
-//           isRowDirty={editing.dirty.isRowDirty(row.id)}
-//           asyncState={editing.getRowAsyncState(row.id)}
-//           isCommitting={editing.isCommitting}
-//           editRef={bulkEditHint.getEditButtonRef(row.id)}
-//           suppressEditTooltip={bulkEditHint.criticalEditHint?.rowId === row.id}
-//           onEditRow={() => enterBulkRowEdit(row.id)}
-//           onClearError={() => editing.clearRowError(row.id)}
-//           onSaveRowDraft={() =>
-//             void (isRowEditing
-//               ? editing.saveRow()
-//               : editing.saveRowDraft(row.id))
-//           }
-//           onDiscardRow={() => {
-//             editing.discardRowDraft(row.id);
-//             if (isRowEditing) editing.exitEdit();
-//           }}
-//         />
-//       );
-//     },
-//     [bulkEditHint, editing, enterBulkRowEdit],
-//   );
-//   const [filteringState, setFilteringState] = React.useState<FilteringState>({
-//     columnFilters: [],
-//     globalFilter: "",
-//   });
-
-//   return (
-//     <>
-//       <div ref={gridRootRef}>
-//         <RivetGrid
-//           ariaLabel="Editing table"
-//           columns={bulkEditColumns}
-//           rows={visibleRows}
-//           getRowId={(row) => row.id}
-//           height={480}
-//           density={"medium"}
-//           rowStyle="outline"
-//           theme="light"
-//           rivetGridWidthMode="fill"
-//           resizeMode="live"
-//           filteringState={filteringState}
-//           onFilteringChange={(event) => {
-//             setFilteringState(event.next);
-//           }}
-//           enableGrouping={false}
-//           richCells={{ enabled: true }}
-//           keyboardNav="cells"
-//           editingEnabled
-//           editingRowId={editing.editingState.activeRowId}
-//           editingColId={editing.editingState.activeColId}
-//           editingRowIsDirty={
-//             editing.editingState.activeRowId
-//               ? editing.dirty.isRowDirty(editing.editingState.activeRowId)
-//               : false
-//           }
-//           hasAnyDirtyRows={editing.dirty.hasAnyDirtyDraft}
-//           toolbarRightActions={
-//             dirtyRowIds.length > 0 ? (
-//               <>
-//                 <BulkRowEditSaveAllAction
-//                   count={dirtyRowIds.length}
-//                   isSaving={editing.isCommitting}
-//                   onSaveAll={() =>
-//                     Promise.resolve(editing.commitAllDrafts()).catch(() => {})
-//                   }
-//                 />
-//                 <BulkRowEditDirtyFilterAction
-//                   count={dirtyRowIds.length}
-//                   active={filterDirtyRows}
-//                   onToggle={() => setFilterDirtyRows((current) => !current)}
-//                 />
-//               </>
-//             ) : null
-//           }
-//           renderRowActions={renderBulkRowActions}
-//           rowActionsWidth={BULK_ROW_EDIT_ACTIONS_WIDTH}
-//           pinRowActions
-//           rowActionsAffectRowHeight={false}
-//           spreadsheetDefaults={{
-//             enabled: true,
-//             rangeSelection: { enabled: true },
-//             structuralEditing: { enabled: false },
-//           }}
-//         />
-//       </div>
-//       <BulkRowEditCriticalTooltip
-//         criticalEditHint={bulkEditHint.criticalEditHint}
-//         getEditButtonRef={bulkEditHint.getEditButtonRef}
-//         onDismiss={bulkEditHint.clearCriticalEditHint}
-//       />
-//     </>
-//   );
-// }
+  return (
+    <>
+      <div>
+        <RivetGridPro
+          ariaLabel="Custom table"
+          columns={bulkEditColumns}
+          rows={visibleRows}
+          getRowId={(row) => row.id}
+          height={480}
+          stickyHeader
+          density={"medium"}
+          rowStyle="outline"
+          theme="light"
+          rivetGridWidthMode="fill"
+          resizeMode="live"
+          enableGrouping={false}
+          richCells={{ enabled: true }}
+          savedViews={{ enabled: true, views, onViewsChange: setViews }}
+          bulkEdit={{
+            hasDirtyRows: dirtyRowIds.length > 0,
+            dirtyRowCount: dirtyRowIds.length,
+            saveAll: { onSaveAll: saveAllDrafts },
+            dirtyRowsFilter: {
+              active: filterDirtyRows,
+              onToggle: () => setFilterDirtyRows((current) => !current),
+            },
+          }}
+          keyboardNav="cells"
+          editingEnabled
+          editingRowId={editingRowId}
+          editingColId={editingColId}
+          editingRowIsDirty={
+            editingRowId ? Boolean(drafts[editingRowId]) : false
+          }
+          renderRowActions={renderBulkRowActions}
+          rowActionsWidth={136}
+          pinRowActions
+          rowActionsAffectRowHeight={false}
+          editingDefaults={{
+            enabled: true,
+            structuralEditing: { enabled: false },
+          }}
+        />
+      </div>
+    </>
+  );
+}

@@ -1,5 +1,6 @@
 import * as React from "react";
-import { RivetGrid, formatCellValue, type Column } from "@rivetgrid/rivetgrid";
+import { type Column } from "@rivetgrid/grid";
+import { RivetGridPro } from "@rivetgrid/pro";
 
 type ProductRow = {
   id: string;
@@ -112,71 +113,17 @@ const rows: ProductRow[] = [
     available: true,
   },
 ];
-
-const statusVariants = {
-  Active: "success",
-  Review: "warning",
-  Paused: "neutral",
-} as const;
-
-const allColumns: Column<ProductRow>[] = [
-  {
-    id: "product",
-    header: "Product",
-    accessor: (row) => row.product,
-    width: 168,
-  },
-  { id: "owner", header: "Owner", accessor: (row) => row.owner, width: 120 },
-  {
-    id: "status",
-    header: "Status",
-    accessor: (row) => row.status,
-    cellFormat: "enum",
-    enumOptions: ["Active", "Review", "Paused"],
-    richCell: { preset: "statusBadge", statusVariantByValue: statusVariants },
-    width: 116,
-  },
-  {
-    id: "priority",
-    header: "Priority",
-    accessor: (row) => row.priority,
-    width: 112,
-  },
-  { id: "region", header: "Region", accessor: (row) => row.region, width: 112 },
-  {
-    id: "progress",
-    header: "Progress",
-    accessor: (row) => row.progress,
-    cellFormat: "percentage",
-    richCell: {
-      preset: "progressBar",
-      progressMax: 100,
-      progressShowValue: true,
-    },
-    width: 132,
-  },
-  {
-    id: "price",
-    header: "Budget",
-    accessor: (row) => row.price,
-    cellFormat: "currency",
-    isNumeric: true,
-    aggregations: ["sum", "avg"],
-    width: 124,
-  },
-  {
-    id: "due",
-    header: "Due",
-    accessor: (row) => formatCellValue(row.due, { format: "date" }),
-    cellFormat: "date",
-    width: 122,
-  },
+const columns: Column<ProductRow>[] = [
+  { id: "product", header: "Product", accessor: (row) => row.product },
+  { id: "owner", header: "Owner", accessor: (row) => row.owner },
+  { id: "status", header: "Status", accessor: (row) => row.status },
+  { id: "priority", header: "Priority", accessor: (row) => row.priority },
+  { id: "region", header: "Region", accessor: (row) => row.region },
+  { id: "progress", header: "Progress", accessor: (row) => row.progress },
+  { id: "price", header: "Price", accessor: (row) => row.price },
 ];
-
-function pickColumns(...ids: string[]) {
-  return ids.map((id) => allColumns.find((column) => column.id === id)!);
-}
-
+const pickColumns = (...ids: string[]) =>
+  columns.filter((column) => ids.includes(column.id));
 export function SpreadsheetEditingExample() {
   const [editableRows, setEditableRows] = React.useState(rows);
   const onCommitCell = (rowId: string, columnId: string, value: unknown) => {
@@ -188,27 +135,28 @@ export function SpreadsheetEditingExample() {
   };
 
   return (
-    <RivetGrid
+    <RivetGridPro
       ariaLabel="Documentation editing"
       columns={pickColumns("product", "owner", "status", "progress", "price")}
       rows={editableRows}
       getRowId={(row) => row.id}
       keyboardNav="cells"
       editingEnabled
-      spreadsheetDefaults={{
+      editingDefaults={{
         enabled: true,
-        rangeSelection: { enabled: true },
-        fillHandle: { enabled: true },
         validateCell: (_rowId, columnId, value) =>
           columnId === "progress" && (Number(value) < 0 || Number(value) > 100)
             ? { valid: false, error: "Progress must stay between 0 and 100." }
             : { valid: true },
         onCommitCell,
       }}
+      spreadsheet={{
+        rangeSelection: { enabled: true },
+        fillHandle: { enabled: true, mode: "preview-commit" },
+      }}
       richCells={{ enabled: true }}
       enableColumnSettings
-      // enableSearch={false}
-      disableSearch
+      enableSearch={false}
     />
   );
 }

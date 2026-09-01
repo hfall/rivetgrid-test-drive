@@ -1,5 +1,5 @@
 import * as React from "react";
-import { RivetGrid, type Column } from "@rivetgrid/rivetgrid";
+import { RivetGrid, type Column } from "@rivetgrid/grid";
 
 type RichRow = {
   id: string;
@@ -158,11 +158,11 @@ const allColumns: Column<RichRow>[] = [
   },
 ];
 
-const columns = ["ticker", "status", "tags", "rating"].map(
+const columns = ["link", "progress", "quantity", "trend"].map(
   (id) => allColumns.find((column) => column.id === id)!,
 );
 
-export function RichCellIdentityExample() {
+export function RichCellWorkflowExample() {
   return (
     <RivetGrid
       ariaLabel="Documentation rich cells"
@@ -173,7 +173,7 @@ export function RichCellIdentityExample() {
       stickyHeader
       density="medium"
       rowStyle="outline"
-      // enableSearch={false}
+      enableSearch={false}
     />
   );
 }

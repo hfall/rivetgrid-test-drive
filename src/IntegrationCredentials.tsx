@@ -1,6 +1,5 @@
 import * as React from "react";
-import { RivetGrid, type Column } from "@rivetgrid/rivetgrid";
-import "@rivetgrid/rivetgrid/styles.css";
+import { RivetGrid, type Column } from "@rivetgrid/grid";
 
 type IntegrationCredential = {
   id: string;
@@ -45,7 +44,7 @@ const columns: Column<IntegrationCredential>[] = [
 
 export function IntegrationCredentials() {
   const [editableRows, setEditableRows] = React.useState(rows);
-  const spreadsheetDefaults = React.useMemo(
+  const editingDefaults = React.useMemo(
     () => ({
       enabled: true,
       onCommitCell: (rowId: string, columnId: string, value: unknown) => {
@@ -74,7 +73,7 @@ export function IntegrationCredentials() {
       getRowId={(row) => row.id}
       keyboardNav="cells"
       editingEnabled
-      spreadsheetDefaults={spreadsheetDefaults}
+      editingDefaults={editingDefaults}
     />
   );
 }

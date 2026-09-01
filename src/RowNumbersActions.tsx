@@ -1,6 +1,5 @@
 import * as React from "react";
-import { RivetGrid, formatCellValue, type Column } from "@rivetgrid/rivetgrid";
-import "@rivetgrid/rivetgrid/styles.css";
+import { RivetGrid, type Column } from "@rivetgrid/grid";
 
 type ProductRow = {
   id: string;
@@ -162,13 +161,12 @@ const allColumns: Column<ProductRow>[] = [
     accessor: (row) => row.price,
     cellFormat: "currency",
     isNumeric: true,
-    aggregations: ["sum", "avg"],
     width: 124,
   },
   {
     id: "due",
     header: "Due",
-    accessor: (row) => formatCellValue(row.due, { format: "date" }),
+    accessor: (row) => row.due,
     cellFormat: "date",
     width: 122,
   },
@@ -182,7 +180,7 @@ export function RowActionsExample() {
   const rowActions = React.useMemo(
     () => [
       { id: "open", label: "Open", onClick: () => undefined },
-      { id: "dupe", label: "Duplicate", onClick: () => undefined },
+      { id: "duplicate", label: "Duplicate", onClick: () => undefined },
       {
         id: "archive",
         label: "Archive",
@@ -203,7 +201,7 @@ export function RowActionsExample() {
       enableRowNumbers
       rowActions={rowActions}
       rowActionsWidth={44}
-      // enableSearch={false}
+      enableSearch={false}
     />
   );
 }

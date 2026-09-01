@@ -1,233 +1,450 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from "react";
-import { RivetGrid, type Column } from "@rivetgrid/rivetgrid";
-import "@rivetgrid/rivetgrid/styles.css";
+import { type Column, type GroupingState } from "@rivetgrid/grid";
+import { RivetGridPro, type SavedView } from "@rivetgrid/pro";
 
-type StarterRow = {
+type AccountRow = {
   id: string;
-  category: string;
-  brand: string;
-  price: number;
-  change: number | null;
-  changePercent: number | null;
-  stock: number;
-  rating: number;
-  supplier: string;
-  status: "Active" | "Review" | "Paused";
-  progress: number;
+  account: string;
+  contact: string;
+  stage: "Discovery" | "Pilot" | "Procurement" | "Won";
+  dealSize: number;
+  closeDate: string;
+  health: number;
+  region: string;
+  probability: number;
+  nextStep: string;
+  lastTouch: string;
 };
 
-const allColumns: Column<StarterRow>[] = [
+const stageVariants = {
+  Discovery: "info",
+  Pilot: "warning",
+  Procurement: "neutral",
+  Won: "success",
+} as const;
+const allColumns: Column<AccountRow>[] = [
   {
-    id: "category",
-    header: "Category",
-    accessor: (row) => row.category,
+    id: "account",
+    header: "Account",
+    accessor: (row) => row.account,
+    width: 196,
+    minWidth: 170,
     type: "text",
-    width: 200,
     sortable: true,
   },
   {
-    id: "brand",
-    header: "Brand",
-    accessor: (row) => row.brand,
-    type: "text",
-    width: 200,
+    id: "contactAvatar",
+    header: "Contact",
+    accessor: (row) => row.contact,
     sortable: true,
   },
   {
-    id: "price",
-    header: "Price",
-    accessor: (row) => row.price,
+    id: "contact",
+    header: "Contact",
+    accessor: (row) => row.contact,
+    width: 150,
+    type: "text",
+    sortable: true,
+  },
+  {
+    id: "stage",
+    header: "Stage",
+    accessor: (row) => row.stage,
+    width: 134,
+    richCell: { preset: "statusBadge", statusVariantByValue: stageVariants },
+    sortable: true,
+  },
+  {
+    id: "dealSize",
+    header: "Deal Size",
+    accessor: (row) => row.dealSize,
     type: "currency",
     cellFormat: "currency",
     align: "right",
     isNumeric: true,
-    width: 150,
+    width: 122,
     sortable: true,
   },
   {
-    id: "change",
-    header: "Change",
-    accessor: (row) => row.change,
-    type: "number",
-    align: "right",
-    isNumeric: true,
-    width: 150,
+    id: "closeDate",
+    header: "Close",
+    accessor: (row) => row.closeDate,
+    type: "date",
+    cellFormat: "date",
+    width: 116,
     sortable: true,
-    priceAction: {},
   },
   {
-    id: "changePercent",
-    header: "Change %",
-    accessor: (row) => row.changePercent,
+    id: "health",
+    header: "Health",
+    accessor: (row) => row.health,
     type: "percentage",
     cellFormat: "percentage",
-    align: "right",
-    isNumeric: true,
-    width: 150,
-    sortable: true,
-    priceAction: { displayFormat: "percent" },
-  },
-  {
-    id: "stock",
-    header: "Stock",
-    accessor: (row) => row.stock,
-    type: "number",
-    align: "right",
-    isNumeric: true,
-    width: 92,
+    richCell: {
+      preset: "progressBar",
+      progressMax: 100,
+      progressStatusAccessor: (row) => row.stage,
+      statusVariantByValue: stageVariants,
+    },
+    width: 138,
     sortable: true,
   },
   {
-    id: "rating",
-    header: "Rating",
-    accessor: (row) => row.rating,
-    type: "number",
-    cellFormat: "rating",
-    align: "right",
-    isNumeric: true,
-    width: 104,
-    sortable: true,
-  },
-  {
-    id: "supplier",
-    header: "Supplier",
-    accessor: (row) => row.supplier,
+    id: "region",
+    header: "Region",
+    accessor: (row) => row.region,
+    width: 120,
     type: "text",
-    width: 142,
     sortable: true,
   },
   {
-    id: "status",
-    header: "Status",
-    accessor: (row) => row.status,
-    type: "enum",
-    cellFormat: "enum",
-    enumOptions: ["Active", "Review", "Paused"],
-    width: 118,
-    sortable: true,
-  },
-  {
-    id: "progress",
-    header: "Progress",
-    accessor: (row) => row.progress,
+    id: "probability",
+    header: "Probability",
+    accessor: (row) => row.probability,
     type: "percentage",
     cellFormat: "percentage",
     align: "right",
     isNumeric: true,
-    width: 118,
+    width: 124,
+    sortable: true,
+  },
+  {
+    id: "nextStep",
+    header: "Next Step",
+    accessor: (row) => row.nextStep,
+    width: 178,
+    type: "text",
+    sortable: true,
+  },
+  {
+    id: "lastTouch",
+    header: "Last Touch",
+    accessor: (row) => row.lastTouch,
+    type: "date",
+    cellFormat: "date",
+    width: 124,
+    minWidth: 124,
     sortable: true,
   },
 ];
 
-const baseRows: StarterRow[] = [
+const baseRows: AccountRow[] = [
   {
-    id: "custom-1",
-    category: "Furniture",
-    brand: "TechLink",
-    price: 402.98,
-    change: 8.42,
-    changePercent: 5.6,
-    stock: 84,
-    rating: 4.8,
-    supplier: "Northstar",
-    status: "Active",
-    progress: 82,
+    id: "crm-001",
+    account: "Northstar Health",
+    contact: "Ari Bell",
+    stage: "Pilot",
+    dealSize: 124000,
+    closeDate: "2026-07-12",
+    health: 78,
+    region: "West",
+    probability: 62,
+    nextStep: "Security review",
+    lastTouch: "2026-06-10",
   },
   {
-    id: "custom-2",
-    category: "Accessories",
-    brand: "ComfortPlus",
-    price: 329.31,
-    change: -3.11,
-    changePercent: -1.72,
-    stock: 132,
-    rating: 4.4,
-    supplier: "Atlas",
-    status: "Review",
-    progress: 68,
+    id: "crm-002",
+    account: "Cobalt Logistics",
+    contact: "Ren Ito",
+    stage: "Discovery",
+    dealSize: 68000,
+    closeDate: "2026-07-24",
+    health: 55,
+    region: "Central",
+    probability: 34,
+    nextStep: "Workflow mapping",
+    lastTouch: "2026-06-09",
   },
   {
-    id: "custom-3",
-    category: "Audio",
-    brand: "ViewMaster",
-    price: 438.54,
-    change: 0,
-    changePercent: 0,
-    stock: 46,
-    rating: 4.6,
-    supplier: "Summit",
-    status: "Active",
-    progress: 91,
+    id: "crm-003",
+    account: "Atlas Retail",
+    contact: "June Park",
+    stage: "Procurement",
+    dealSize: 211000,
+    closeDate: "2026-08-01",
+    health: 83,
+    region: "East",
+    probability: 74,
+    nextStep: "Legal redlines",
+    lastTouch: "2026-06-12",
   },
   {
-    id: "custom-4",
-    category: "Office",
-    brand: "KeyStroke",
-    price: 488.64,
-    change: null,
-    changePercent: null,
-    stock: 24,
-    rating: 4.2,
-    supplier: "Northstar",
-    status: "Paused",
-    progress: 54,
+    id: "crm-004",
+    account: "Beacon Labs",
+    contact: "Theo West",
+    stage: "Won",
+    dealSize: 94000,
+    closeDate: "2026-06-30",
+    health: 96,
+    region: "West",
+    probability: 100,
+    nextStep: "Kickoff",
+    lastTouch: "2026-06-11",
   },
   {
-    id: "custom-5",
-    category: "Home",
-    brand: "DataVault",
-    price: 268.4,
-    change: -2.5,
-    changePercent: -0.85,
-    stock: 118,
-    rating: 4.7,
-    supplier: "Atlas",
-    status: "Active",
-    progress: 76,
+    id: "crm-005",
+    account: "Harbor Foods",
+    contact: "Mina Fox",
+    stage: "Pilot",
+    dealSize: 154000,
+    closeDate: "2026-07-18",
+    health: 69,
+    region: "South",
+    probability: 58,
+    nextStep: "Sandbox import",
+    lastTouch: "2026-06-07",
   },
   {
-    id: "custom-6",
-    category: "Sports",
-    brand: "HomePro",
-    price: 352.54,
-    change: null,
-    changePercent: null,
-    stock: 69,
-    rating: 4.1,
-    supplier: "Summit",
-    status: "Review",
-    progress: 63,
+    id: "crm-006",
+    account: "Summit Energy",
+    contact: "Owen Lee",
+    stage: "Discovery",
+    dealSize: 81000,
+    closeDate: "2026-08-09",
+    health: 48,
+    region: "Central",
+    probability: 29,
+    nextStep: "Architecture call",
+    lastTouch: "2026-06-06",
   },
   {
-    id: "custom-7",
-    category: "Clothing",
-    brand: "FitLife",
-    price: 66.08,
-    change: 0.93,
-    changePercent: -0.57,
-    stock: 205,
-    rating: 4.5,
-    supplier: "Northstar",
-    status: "Active",
-    progress: 88,
+    id: "crm-007",
+    account: "Vector Bank",
+    contact: "Nia Cruz",
+    stage: "Procurement",
+    dealSize: 287000,
+    closeDate: "2026-07-29",
+    health: 74,
+    region: "East",
+    probability: 81,
+    nextStep: "Vendor review",
+    lastTouch: "2026-06-12",
   },
   {
-    id: "custom-8",
-    category: "Electronics",
-    brand: "SoundMax",
-    price: 137.5,
-    change: 4.42,
-    changePercent: -2.66,
-    stock: 97,
-    rating: 4.3,
-    supplier: "Atlas",
-    status: "Paused",
-    progress: 47,
+    id: "crm-008",
+    account: "Cedar Schools",
+    contact: "Lio Chen",
+    stage: "Pilot",
+    dealSize: 112000,
+    closeDate: "2026-08-14",
+    health: 66,
+    region: "North",
+    probability: 52,
+    nextStep: "Admin training",
+    lastTouch: "2026-06-08",
+  },
+  {
+    id: "crm-009",
+    account: "Monarch Studios",
+    contact: "Greta Lane",
+    stage: "Pilot",
+    dealSize: 132500,
+    closeDate: "2026-07-21",
+    health: 81,
+    region: "West",
+    probability: 66,
+    nextStep: "Security review",
+    lastTouch: "2026-06-12",
+  },
+  {
+    id: "crm-010",
+    account: "Pioneer Transit",
+    contact: "Malik Ross",
+    stage: "Discovery",
+    dealSize: 76500,
+    closeDate: "2026-08-02",
+    health: 58,
+    region: "Central",
+    probability: 38,
+    nextStep: "Workflow mapping",
+    lastTouch: "2026-06-11",
+  },
+  {
+    id: "crm-011",
+    account: "Luma Insurance",
+    contact: "Eve Stone",
+    stage: "Procurement",
+    dealSize: 219500,
+    closeDate: "2026-08-10",
+    health: 86,
+    region: "East",
+    probability: 78,
+    nextStep: "Legal redlines",
+    lastTouch: "2026-06-14",
+  },
+  {
+    id: "crm-012",
+    account: "Evergreen Clinics",
+    contact: "Rafa Silva",
+    stage: "Won",
+    dealSize: 102500,
+    closeDate: "2026-07-09",
+    health: 99,
+    region: "West",
+    probability: 100,
+    nextStep: "Kickoff",
+    lastTouch: "2026-06-13",
+  },
+  {
+    id: "crm-013",
+    account: "Copperline Media",
+    contact: "Clara Ames",
+    stage: "Pilot",
+    dealSize: 162500,
+    closeDate: "2026-07-27",
+    health: 72,
+    region: "South",
+    probability: 62,
+    nextStep: "Sandbox import",
+    lastTouch: "2026-06-09",
+  },
+  {
+    id: "crm-014",
+    account: "Granite Works",
+    contact: "Ben Harper",
+    stage: "Discovery",
+    dealSize: 89500,
+    closeDate: "2026-08-18",
+    health: 51,
+    region: "Central",
+    probability: 33,
+    nextStep: "Architecture call",
+    lastTouch: "2026-06-08",
+  },
+  {
+    id: "crm-015",
+    account: "Brightpath Tutors",
+    contact: "Zoe Quinn",
+    stage: "Procurement",
+    dealSize: 295500,
+    closeDate: "2026-08-07",
+    health: 77,
+    region: "East",
+    probability: 85,
+    nextStep: "Vendor review",
+    lastTouch: "2026-06-14",
+  },
+  {
+    id: "crm-016",
+    account: "Aster Robotics",
+    contact: "Milo Chen",
+    stage: "Pilot",
+    dealSize: 120500,
+    closeDate: "2026-08-23",
+    health: 69,
+    region: "North",
+    probability: 56,
+    nextStep: "Admin training",
+    lastTouch: "2026-06-10",
+  },
+  {
+    id: "crm-017",
+    account: "Lakeview Grocers",
+    contact: "Tess Gray",
+    stage: "Pilot",
+    dealSize: 141000,
+    closeDate: "2026-07-30",
+    health: 84,
+    region: "West",
+    probability: 70,
+    nextStep: "Security review",
+    lastTouch: "2026-06-14",
+  },
+  {
+    id: "crm-018",
+    account: "Nimbus Travel",
+    contact: "Nora Blake",
+    stage: "Discovery",
+    dealSize: 85000,
+    closeDate: "2026-08-11",
+    health: 61,
+    region: "Central",
+    probability: 42,
+    nextStep: "Workflow mapping",
+    lastTouch: "2026-06-13",
+  },
+  {
+    id: "crm-019",
+    account: "Bridgewell Legal",
+    contact: "Hugo Price",
+    stage: "Procurement",
+    dealSize: 228000,
+    closeDate: "2026-08-19",
+    health: 89,
+    region: "East",
+    probability: 82,
+    nextStep: "Legal redlines",
+    lastTouch: "2026-06-16",
+  },
+  {
+    id: "crm-020",
+    account: "Keystone Apparel",
+    contact: "Ivy Cole",
+    stage: "Won",
+    dealSize: 111000,
+    closeDate: "2026-07-18",
+    health: 99,
+    region: "West",
+    probability: 100,
+    nextStep: "Kickoff",
+    lastTouch: "2026-06-15",
+  },
+  {
+    id: "crm-021",
+    account: "Orbit Analytics",
+    contact: "Ezra Moon",
+    stage: "Pilot",
+    dealSize: 171000,
+    closeDate: "2026-08-05",
+    health: 75,
+    region: "South",
+    probability: 66,
+    nextStep: "Sandbox import",
+    lastTouch: "2026-06-11",
+  },
+  {
+    id: "crm-022",
+    account: "Horizon Dental",
+    contact: "Dina Wells",
+    stage: "Discovery",
+    dealSize: 98000,
+    closeDate: "2026-08-27",
+    health: 54,
+    region: "Central",
+    probability: 37,
+    nextStep: "Architecture call",
+    lastTouch: "2026-06-10",
+  },
+  {
+    id: "crm-023",
+    account: "Foundry Capital",
+    contact: "Cole Rivera",
+    stage: "Procurement",
+    dealSize: 304000,
+    closeDate: "2026-08-16",
+    health: 80,
+    region: "East",
+    probability: 89,
+    nextStep: "Vendor review",
+    lastTouch: "2026-06-16",
+  },
+  {
+    id: "crm-024",
+    account: "Redwood Telecom",
+    contact: "Ana Pierce",
+    stage: "Pilot",
+    dealSize: 129000,
+    closeDate: "2026-09-01",
+    health: 72,
+    region: "North",
+    probability: 60,
+    nextStep: "Admin training",
+    lastTouch: "2026-06-12",
   },
 ];
 
-function makeRows(count: number): StarterRow[] {
+function makeRows(count: number): AccountRow[] {
   const flatRows = Array.from({ length: count }, (_, index) => ({
     ...baseRows[index % baseRows.length],
     id: "row-" + (index + 1),
@@ -248,7 +465,7 @@ const STRUCTURAL_COLUMN_TYPES = [
   { id: "datetime", label: "Date & Time" },
 ];
 
-function getColumnTypePatch(typeId: string): Partial<Column<StarterRow>> {
+function getColumnTypePatch(typeId: string): Partial<Column<AccountRow>> {
   if (typeId === "currency")
     return {
       type: "currency",
@@ -313,25 +530,25 @@ function getColumnTypePatch(typeId: string): Partial<Column<StarterRow>> {
 }
 
 function mapRows(
-  rows: StarterRow[],
-  update: (row: StarterRow) => StarterRow,
-): StarterRow[] {
+  rows: AccountRow[],
+  update: (row: AccountRow) => AccountRow,
+): AccountRow[] {
   return rows.map((row) => {
     const next = update(row);
-    const children = (next as StarterRow & { children?: StarterRow[] })
+    const children = (next as AccountRow & { children?: AccountRow[] })
       .children;
     return children?.length
-      ? ({ ...next, children: mapRows(children, update) } as StarterRow)
+      ? ({ ...next, children: mapRows(children, update) } as AccountRow)
       : next;
   });
 }
 
 function insertRow(
-  rows: StarterRow[],
+  rows: AccountRow[],
   rowId: string,
   position: "above" | "below",
-  nextRow: StarterRow,
-): { rows: StarterRow[]; inserted: boolean } {
+  nextRow: AccountRow,
+): { rows: AccountRow[]; inserted: boolean } {
   const anchorIndex = rows.findIndex((row) => row.id === rowId);
   if (anchorIndex >= 0) {
     const insertIndex = position === "above" ? anchorIndex : anchorIndex + 1;
@@ -345,71 +562,73 @@ function insertRow(
     };
   }
   for (let index = 0; index < rows.length; index += 1) {
-    const children = (rows[index] as StarterRow & { children?: StarterRow[] })
+    const children = (rows[index] as AccountRow & { children?: AccountRow[] })
       .children;
     if (!children?.length) continue;
     const nested = insertRow(children, rowId, position, nextRow);
     if (!nested.inserted) continue;
     const nextRows = [...rows];
-    nextRows[index] = { ...rows[index], children: nested.rows } as StarterRow;
+    nextRows[index] = { ...rows[index], children: nested.rows } as AccountRow;
     return { rows: nextRows, inserted: true };
   }
   return { rows, inserted: false };
 }
 
-function deleteRow(rows: StarterRow[], rowId: string): StarterRow[] {
+function deleteRow(rows: AccountRow[], rowId: string): AccountRow[] {
   return rows
     .filter((row) => row.id !== rowId)
     .map((row) => {
-      const children = (row as StarterRow & { children?: StarterRow[] })
+      const children = (row as AccountRow & { children?: AccountRow[] })
         .children;
       return children?.length
-        ? ({ ...row, children: deleteRow(children, rowId) } as StarterRow)
+        ? ({ ...row, children: deleteRow(children, rowId) } as AccountRow)
         : row;
     });
 }
 
-function countRows(rows: StarterRow[]): number {
+function countRows(rows: AccountRow[]): number {
   return rows.reduce((count, row) => {
     const children =
-      (row as StarterRow & { children?: StarterRow[] }).children ?? [];
+      (row as AccountRow & { children?: AccountRow[] }).children ?? [];
     return count + 1 + countRows(children);
   }, 0);
 }
 
-const initialColumns: Column<StarterRow>[] = allColumns.map((column) => ({
-  ...column,
-  pin: undefined,
-  resizable: column.resizable ?? true,
-  sortable: false,
-  searchable: false,
-  filterType: undefined,
-}));
+const initialColumns: Column<AccountRow>[] = allColumns
+  .slice(0, 7)
+  .map((column, index) => ({
+    ...column,
+    pin: index === 0 ? ("left" as const) : undefined,
+    resizable: column.resizable ?? true,
+    sortable: false,
+    searchable: false,
+    filterType: undefined,
+  }));
 
 export function Aggregations() {
   const [columns, setColumns] = React.useState(() => initialColumns);
-  const [rows, setRows] = React.useState(() => makeRows(100));
+  const [rows, setRows] = React.useState(() => makeRows(1000));
   const insertedColumnId = React.useRef(1);
   const insertedRowId = React.useRef(1);
 
   const updateRow = React.useCallback(
     (
-      current: StarterRow[],
+      current: AccountRow[],
       rowId: string,
       columnId: string,
       value: unknown,
-    ): StarterRow[] => {
+    ): AccountRow[] => {
       return current.map((row) => {
         if (row.id === rowId) {
-          return { ...row, [columnId]: value } as StarterRow;
+          return { ...row, [columnId]: value } as AccountRow;
         }
-        const children = (row as StarterRow & { children?: StarterRow[] })
+        const children = (row as AccountRow & { children?: AccountRow[] })
           .children;
         return children?.length
           ? ({
               ...row,
               children: updateRow(children, rowId, columnId, value),
-            } as StarterRow)
+            } as AccountRow)
           : row;
       });
     },
@@ -423,33 +642,55 @@ export function Aggregations() {
     },
     [updateRow],
   );
+  const [density, setDensity] = React.useState<
+    "compact" | "medium" | "relaxed" | "spacious"
+  >("medium");
+  const [views, setViews] = React.useState<SavedView[]>([
+    {
+      id: "default",
+      name: "Default",
+      state: { columnPinning: { [columns[0].id]: "left" } },
+    },
+    { id: "builder-starter", name: "Builder starter", state: {} },
+  ]);
+  const [groupingState, setGroupingState] = React.useState<GroupingState>({
+    groupBy: "account",
+    collapsedGroups: new Set(),
+  });
 
   return (
-    <RivetGrid
-      ariaLabel="Custom table"
+    <RivetGridPro
+      ariaLabel="CRM table"
       columns={columns}
       rows={rows}
       getRowId={(row) => row.id}
       height={480}
-      density={"medium"}
+      virtualization={{ enabled: true, overscan: 5 }}
+      stickyHeader
+      density={density}
+      onDensityChange={setDensity}
       rowStyle="outline"
       theme="light"
       rivetGridWidthMode="fill"
       resizeMode="live"
+      enableDownloadMenu
+      enableDensityToggle
       enableColumnSettings
-      defaultColumnAggregationState={{
-        price: "sum",
-        stock: "sum",
-        progress: "avg",
-      }}
-      enableGrouping={false}
+      enableColumnDragToPin
+      enableGrouping
+      groupingState={groupingState}
+      onGroupingChange={(event) => setGroupingState(event.next)}
       richCells={{ enabled: true }}
+      savedViews={{ enabled: true, views, onViewsChange: setViews }}
+      aggregation={{ enableFooter: true, defaultState: { dealSize: "sum" } }}
+      spreadsheet={{
+        rangeSelection: { enabled: true },
+      }}
+      enableRowNumbers
       keyboardNav="cells"
       editingEnabled
-      spreadsheetDefaults={{
+      editingDefaults={{
         enabled: true,
-        rangeSelection: { enabled: false },
-        fillHandle: { enabled: false },
         structuralEditing: {
           enabled: true,
           columnTypes: STRUCTURAL_COLUMN_TYPES,
@@ -458,7 +699,7 @@ export function Aggregations() {
             insertedColumnId.current += 1;
             const nextColumnId = "custom_" + typeId + "_" + sequence;
             const typePatch = getColumnTypePatch(typeId);
-            const nextColumn: Column<StarterRow> = {
+            const nextColumn: Column<AccountRow> = {
               id: nextColumnId,
               header:
                 (STRUCTURAL_COLUMN_TYPES.find((option) => option.id === typeId)
@@ -490,7 +731,7 @@ export function Aggregations() {
             setRows((current) =>
               mapRows(
                 current,
-                (row) => ({ ...row, [nextColumnId]: null }) as StarterRow,
+                (row) => ({ ...row, [nextColumnId]: null }) as AccountRow,
               ),
             );
           },
@@ -498,7 +739,7 @@ export function Aggregations() {
             const nextRow = Object.fromEntries([
               ["id", "inserted-" + insertedRowId.current],
               ...columns.map((column) => [column.id, null]),
-            ]) as unknown as StarterRow;
+            ]) as unknown as AccountRow;
             insertedRowId.current += 1;
             setRows((current) => {
               const result = insertRow(current, rowId, position, nextRow);
@@ -545,7 +786,7 @@ export function Aggregations() {
             );
             setRows((current) =>
               mapRows(current, (row) => {
-                const next = { ...row } as StarterRow & Record<string, unknown>;
+                const next = { ...row } as AccountRow & Record<string, unknown>;
                 delete next[columnId];
                 return next;
               }),

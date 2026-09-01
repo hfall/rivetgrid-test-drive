@@ -1,12 +1,5 @@
 import * as React from "react";
-import {
-  AvatarCell,
-  RivetGrid,
-  ThumbnailCell,
-  normalizeImageCellValue,
-  type Column,
-} from "@rivetgrid/rivetgrid";
-import "@rivetgrid/rivetgrid/styles.css";
+import { RivetGrid, type Column } from "@rivetgrid/grid";
 
 type MediaRow = {
   id: string;
@@ -69,6 +62,10 @@ const initialRows: MediaRow[] = [
     image: null,
   },
 ];
+type MediaEditingDefaults = {
+  enabled: boolean;
+  onCommitCell: (rowId: string, columnId: string, value: unknown) => void;
+};
 
 const mediaColumns: Column<MediaRow>[] = [
   {
@@ -76,7 +73,22 @@ const mediaColumns: Column<MediaRow>[] = [
     header: "",
     label: "Avatar",
     hideHeaderLabel: true,
-    accessor: (row) => <AvatarCell name={row.owner} />,
+    accessor: (row) => (
+      <span
+        aria-label={row.owner}
+        style={{
+          display: "inline-grid",
+          placeItems: "center",
+          width: 28,
+          height: 28,
+          borderRadius: "50%",
+          background: "#e9edf5",
+          fontSize: 12,
+        }}
+      >
+        {row.owner.slice(0, 1)}
+      </span>
+    ),
     cellType: "avatar",
     resizable: false,
     sortable: false,
@@ -86,13 +98,16 @@ const mediaColumns: Column<MediaRow>[] = [
     header: "",
     label: "Thumbnail",
     hideHeaderLabel: true,
-    accessor: (row) => (
-      <ThumbnailCell
-        imageUrl={row.thumbnail.src}
-        label={row.thumbnail.alt}
-        size="default"
-      />
-    ),
+    accessor: (row) =>
+      row.thumbnail.src ? (
+        <img
+          src={row.thumbnail.src}
+          alt={row.thumbnail.alt}
+          width={36}
+          height={24}
+          style={{ display: "block", objectFit: "cover", borderRadius: 4 }}
+        />
+      ) : null,
     cellType: "thumbnail",
     resizable: false,
     sortable: false,
@@ -112,17 +127,20 @@ const mediaColumns: Column<MediaRow>[] = [
 ];
 
 export function MediaCellsDemo() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [rows, setRows] = React.useState<any[]>(initialRows);
-  const spreadsheetDefaults = React.useMemo(
+  const [rows, setRows] = React.useState(initialRows);
+  const editingDefaults = React.useMemo<MediaEditingDefaults>(
     () => ({
       enabled: true,
-      onCommitCell: (rowId: string, columnId: string, value: unknown) => {
+      onCommitCell: (rowId, columnId, value) => {
         setRows((current) =>
           current.map((row) => {
             if (row.id !== rowId) return row;
             if (columnId === "image") {
-              return { ...row, image: normalizeImageCellValue(value) };
+              const imageUrl = typeof value === "string" ? value.trim() : "";
+              return {
+                ...row,
+                image: imageUrl ? { src: imageUrl, alt: row.product } : null,
+              };
             }
             return { ...row, [columnId]: value };
           }),
@@ -140,7 +158,7 @@ export function MediaCellsDemo() {
       getRowId={(row) => row.id}
       keyboardNav="cells"
       editingEnabled
-      spreadsheetDefaults={spreadsheetDefaults}
+      editingDefaults={editingDefaults}
       density="spacious"
       richCells={{ enabled: true }}
     />

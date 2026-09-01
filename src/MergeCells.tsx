@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from "react";
 import {
-  AvatarCell,
-  formatCellValue,
-  RivetGrid,
   type Column,
   type FilteringState,
   type SortingState,
-} from "@rivetgrid/rivetgrid";
-import "@rivetgrid/rivetgrid/styles.css";
+  type ColumnGroupingConfig,
+} from "@rivetgrid/grid";
+import { RivetGridPro } from "@rivetgrid/pro";
+import "@rivetgrid/grid/styles.css";
+import "@rivetgrid/pro/styles.css";
 
 type AccountRow = {
   id: string;
@@ -42,12 +42,9 @@ const allColumns: Column<AccountRow>[] = [
   },
   {
     id: "contactAvatar",
-    header: "",
-    label: "Contact avatar",
-    accessor: (row) => <AvatarCell name={row.contact} size="dense" />,
-    cellType: "avatar",
-    hideHeaderLabel: true,
-    sortable: false,
+    header: "Contact",
+    accessor: (row) => row.contact,
+    sortable: true,
   },
   {
     id: "contact",
@@ -79,7 +76,7 @@ const allColumns: Column<AccountRow>[] = [
   {
     id: "closeDate",
     header: "Close",
-    accessor: (row) => formatCellValue(row.closeDate, { format: "date" }),
+    accessor: (row) => row.closeDate,
     type: "date",
     cellFormat: "date",
     width: 116,
@@ -130,7 +127,7 @@ const allColumns: Column<AccountRow>[] = [
   {
     id: "lastTouch",
     header: "Last Touch",
-    accessor: (row) => formatCellValue(row.lastTouch, { format: "date" }),
+    accessor: (row) => row.lastTouch,
     type: "date",
     cellFormat: "date",
     width: 124,
@@ -623,8 +620,23 @@ function countRows(rows: AccountRow[]): number {
   }, 0);
 }
 
+const columnGrouping: ColumnGroupingConfig = {
+  groups: [
+    {
+      id: "primary-details",
+      label: "Primary",
+      columnIds: ["account", "contactAvatar", "contact", "stage"],
+    },
+    {
+      id: "supporting-details",
+      label: "Details",
+      columnIds: ["dealSize", "closeDate", "health"],
+    },
+  ],
+};
+
 const initialColumns: Column<AccountRow>[] = allColumns
-  .slice(0, 10)
+  .slice(0, 7)
   .map((column) => ({
     ...column,
     pin: undefined,
@@ -639,7 +651,7 @@ const initialColumns: Column<AccountRow>[] = allColumns
 
 export function CRMTable() {
   const [columns, setColumns] = React.useState(() => initialColumns);
-  const [rows, setRows] = React.useState(() => makeRows(100));
+  const [rows, setRows] = React.useState(() => makeRows(1000));
   const insertedColumnId = React.useRef(1);
   const insertedRowId = React.useRef(1);
 
@@ -683,6 +695,9 @@ export function CRMTable() {
       columnIds: ["account", "contactAvatar"],
     },
   ]);
+  const [density, setDensity] = React.useState<
+    "compact" | "medium" | "relaxed" | "spacious"
+  >("medium");
   const [filteringState, setFilteringState] = React.useState<FilteringState>({
     columnFilters: [],
     globalFilter: "",
@@ -690,13 +705,17 @@ export function CRMTable() {
   const [sortingState, setSortingState] = React.useState<SortingState>([]);
 
   return (
-    <RivetGrid
+    <RivetGridPro
       ariaLabel="CRM table"
       columns={columns}
       rows={rows}
       getRowId={(row) => row.id}
       height={480}
-      density={"medium"}
+      virtualization={{ enabled: true, overscan: 5 }}
+      stickyHeader
+      columnGrouping={columnGrouping}
+      density={density}
+      onDensityChange={setDensity}
       rowStyle="outline"
       theme="light"
       rivetGridWidthMode="fill"
@@ -709,14 +728,22 @@ export function CRMTable() {
       onSortingChange={(event) => {
         setSortingState(event.next);
       }}
+      enableDownloadMenu
+      enableDensityToggle
+      enableColumnSettings
+      enableSearch
+      enablePagination
+      defaultPageSize={25}
       enableGrouping={false}
       richCells={{ enabled: true }}
+      spreadsheet={{
+        rangeSelection: { enabled: true },
+      }}
+      enableRowNumbers
       keyboardNav="cells"
       editingEnabled
-      spreadsheetDefaults={{
+      editingDefaults={{
         enabled: true,
-        rangeSelection: { enabled: true },
-        fillHandle: { enabled: false },
         mergeCells: {
           enabled: true,
           mergedCells,

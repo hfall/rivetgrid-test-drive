@@ -1,11 +1,5 @@
 import * as React from "react";
-import {
-  RivetGrid,
-  formatCellValue,
-  type Column,
-  DetailPreviewPanel,
-} from "@rivetgrid/rivetgrid";
-import "@rivetgrid/rivetgrid/styles.css";
+import { RivetGrid, type Column } from "@rivetgrid/grid";
 
 type ProductRow = {
   id: string;
@@ -167,13 +161,12 @@ const allColumns: Column<ProductRow>[] = [
     accessor: (row) => row.price,
     cellFormat: "currency",
     isNumeric: true,
-    aggregations: ["sum", "avg"],
     width: 124,
   },
   {
     id: "due",
     header: "Due",
-    accessor: (row) => formatCellValue(row.due, { format: "date" }),
+    accessor: (row) => row.due,
     cellFormat: "date",
     width: 122,
   },
@@ -187,33 +180,9 @@ export function SidePanelExample() {
   const [previewRow, setPreviewRow] = React.useState<ProductRow | null>(
     rows[0],
   );
-  const previewIndex = previewRow
-    ? rows.findIndex((row) => row.id === previewRow.id)
-    : -1;
-  const previousRow = previewIndex > 0 ? rows[previewIndex - 1] : null;
-  const nextRow =
-    previewIndex >= 0 && previewIndex < rows.length - 1
-      ? rows[previewIndex + 1]
-      : null;
-  const previewSections = [
-    {
-      id: "review",
-      title: "Review",
-      fields: [
-        { id: "owner", label: "Owner", value: previewRow?.owner ?? "None" },
-        { id: "status", label: "Status", value: previewRow?.status ?? "None" },
-        { id: "region", label: "Region", value: previewRow?.region ?? "None" },
-        {
-          id: "progress",
-          label: "Progress",
-          value: previewRow ? `${previewRow.progress}%` : "0%",
-        },
-      ],
-    },
-  ];
 
   return (
-    <div style={{ position: "relative" }}>
+    <div style={{ display: "grid", gap: 16 }}>
       <RivetGrid
         ariaLabel="Documentation side panel table"
         columns={pickColumns(
@@ -222,36 +191,33 @@ export function SidePanelExample() {
           "status",
           "priority",
           "progress",
-          "price",
         )}
         rows={rows}
         getRowId={(row) => row.id}
         height={304}
-        richCells={{ enabled: true }}
         rowActions={[
-          { id: "preview", label: "Open side panel", onClick: setPreviewRow },
+          { id: "preview", label: "Open preview", onClick: setPreviewRow },
         ]}
         getRowState={(row) =>
           row.id === previewRow?.id ? "highlighted" : "default"
         }
+        enableSearch={false}
       />
-      <DetailPreviewPanel
-        open={previewRow !== null}
-        row={previewRow}
-        title={previewRow?.product ?? "Project preview"}
-        sections={previewSections}
-        onClose={() => setPreviewRow(null)}
-        previousAction={{
-          label: "Previous",
-          disabled: !previousRow,
-          onClick: () => previousRow && setPreviewRow(previousRow),
-        }}
-        nextAction={{
-          label: "Next",
-          disabled: !nextRow,
-          onClick: () => nextRow && setPreviewRow(nextRow),
-        }}
-      />
+      {previewRow ? (
+        <aside
+          aria-label="Selected project preview"
+          style={{ border: "1px solid #d7dce5", borderRadius: 12, padding: 16 }}
+        >
+          <h2>{previewRow.product}</h2>
+          <p>
+            {previewRow.owner} · {previewRow.status}
+          </p>
+          <p>Progress: {previewRow.progress}%</p>
+          <button type="button" onClick={() => setPreviewRow(null)}>
+            Close preview
+          </button>
+        </aside>
+      ) : null}
     </div>
   );
 }

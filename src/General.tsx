@@ -1,101 +1,208 @@
-import { RivetGrid, type Column } from "@rivetgrid/rivetgrid";
-import data from "./data.json";
-import React from "react";
+import * as React from "react";
+import { RivetGrid, type Column } from "@rivetgrid/grid";
 
-type Post = {
-  userId: number;
-  id: number;
-  title: string;
-  body: string;
+type ProductRow = {
+  id: string;
+  product: string;
+  owner: string;
+  status: "Active" | "Review" | "Paused";
+  priority: "High" | "Medium" | "Low";
+  region: string;
+  progress: number;
+  price: number;
+  due: string;
+  available: boolean;
 };
 
-const posts = data as Post[];
-
-const columns: Column<Post>[] = [
+const rows: ProductRow[] = [
   {
-    id: "userId",
-    header: "User Id",
-    accessor: (row) => row.userId,
-    type: "number",
-    filterType: "number",
-    isNumeric: true,
-    sortable: true,
-    searchable: true,
-    resizable: true,
-    pin: "left",
-    width: 80,
+    id: "atlas",
+    product: "Atlas Grid",
+    owner: "Maya",
+    status: "Active",
+    priority: "High",
+    region: "North",
+    progress: 72,
+    price: 42000,
+    due: "2026-07-08",
+    available: true,
   },
   {
-    id: "title",
-    header: "Title",
-    accessor: (row) => row.title,
-    sortable: true,
-    searchable: true,
-    resizable: true,
+    id: "pulse",
+    product: "Pulse CRM",
+    owner: "Iris",
+    status: "Review",
+    priority: "Medium",
+    region: "West",
+    progress: 46,
+    price: 26000,
+    due: "2026-07-14",
+    available: true,
   },
   {
-    id: "body",
-    header: "Post",
-    accessor: (row) => `${row.body}`,
-    sortable: true,
-    searchable: true,
-    resizable: true,
+    id: "forge",
+    product: "Forge Ops",
+    owner: "Nolan",
+    status: "Paused",
+    priority: "Low",
+    region: "EMEA",
+    progress: 28,
+    price: 18500,
+    due: "2026-08-02",
+    available: false,
+  },
+  {
+    id: "nova",
+    product: "Nova Desk",
+    owner: "Lena",
+    status: "Active",
+    priority: "Medium",
+    region: "South",
+    progress: 64,
+    price: 31400,
+    due: "2026-07-22",
+    available: true,
+  },
+  {
+    id: "signal",
+    product: "Signal Ops",
+    owner: "Omar",
+    status: "Review",
+    priority: "High",
+    region: "East",
+    progress: 39,
+    price: 22800,
+    due: "2026-08-11",
+    available: false,
+  },
+  {
+    id: "vector",
+    product: "Vector CRM",
+    owner: "Priya",
+    status: "Active",
+    priority: "High",
+    region: "West",
+    progress: 88,
+    price: 52800,
+    due: "2026-07-03",
+    available: true,
+  },
+  {
+    id: "orbit",
+    product: "Orbit BI",
+    owner: "Theo",
+    status: "Paused",
+    priority: "Low",
+    region: "North",
+    progress: 18,
+    price: 12600,
+    due: "2026-08-19",
+    available: false,
+  },
+  {
+    id: "ledger",
+    product: "Ledger Flow",
+    owner: "June",
+    status: "Review",
+    priority: "Medium",
+    region: "EMEA",
+    progress: 52,
+    price: 33700,
+    due: "2026-07-30",
+    available: true,
   },
 ];
 
-export function General() {
-  const [editableRows, setEditableRows] = React.useState(posts);
-  const [selectedRowIds, setSelectedRowIds] = React.useState<Set<string>>(
-    new Set(),
-  );
+const statusVariants = {
+  Active: "success",
+  Review: "warning",
+  Paused: "neutral",
+} as const;
+
+const allColumns: Column<ProductRow>[] = [
+  {
+    id: "product",
+    header: "Product",
+    accessor: (row) => row.product,
+    width: 168,
+  },
+  { id: "owner", header: "Owner", accessor: (row) => row.owner, width: 120 },
+  {
+    id: "status",
+    header: "Status",
+    accessor: (row) => row.status,
+    cellFormat: "enum",
+    enumOptions: ["Active", "Review", "Paused"],
+    richCell: { preset: "statusBadge", statusVariantByValue: statusVariants },
+    width: 116,
+  },
+  {
+    id: "priority",
+    header: "Priority",
+    accessor: (row) => row.priority,
+    width: 112,
+  },
+  { id: "region", header: "Region", accessor: (row) => row.region, width: 112 },
+  {
+    id: "progress",
+    header: "Progress",
+    accessor: (row) => row.progress,
+    cellFormat: "percentage",
+    richCell: {
+      preset: "progressBar",
+      progressMax: 100,
+      progressShowValue: true,
+    },
+    width: 132,
+  },
+  {
+    id: "price",
+    header: "Budget",
+    accessor: (row) => row.price,
+    cellFormat: "currency",
+    isNumeric: true,
+    width: 124,
+  },
+  {
+    id: "due",
+    header: "Due",
+    accessor: (row) => row.due,
+    cellFormat: "date",
+    width: 122,
+  },
+];
+
+function pickColumns(...ids: string[]) {
+  return ids.map((id) => allColumns.find((column) => column.id === id)!);
+}
+
+export function ProductTable() {
+  const [density, setDensity] = React.useState<
+    "compact" | "medium" | "relaxed" | "spacious"
+  >("medium");
+  const columns = pickColumns("product", "owner", "status").map((column) => ({
+    ...column,
+    sortable: true,
+    searchable: true,
+    resizable: true,
+  }));
+
   return (
     <RivetGrid
+      ariaLabel="Products"
       columns={columns}
-      rows={editableRows}
-      getRowKey={(row) => row.id}
-      ariaLabel="Posts"
+      rows={rows}
+      getRowId={(row) => row.id}
+      height={304}
       stickyHeader
-      height={500}
+      density={density}
+      onDensityChange={setDensity}
+      allowedDensityModes={["compact", "medium", "relaxed", "spacious"]}
       rowStyle="outline"
-      keyboardNav="cells"
-      enableSelection
-      selectedRowIds={selectedRowIds}
-      onSelectionChange={(selectedIds) => {
-        setSelectedRowIds(selectedIds);
-      }}
-      enableRowNumbers
-      enableRowPinning
-      enableRowReorder
-      enableColumnDragToPin
-      enableColumnSettings
-      // enableColumnHeaderReorder
-      editingEnabled
-      spreadsheetDefaults={{
-        enabled: true,
-        rangeSelection: { enabled: true },
-        fillHandle: { enabled: true },
-        structuralEditing: {
-          enabled: true,
-        },
-        onCommitCell: (rowId: string, columnId: string, value: unknown) => {
-          // console.log(rowId, columnId, value);
-          setEditableRows((current) =>
-            current.map((row) => {
-              console.log(row.id.toString() === rowId, row);
-              return row.id.toString() === rowId
-                ? { ...row, [columnId]: value ?? "" }
-                : row;
-            }),
-          );
-        },
-      }}
-
-      // rowOrder={}
-      // displayMode="cards"
-      // theme="dark"
-      // disableSearch
-      // enableDensityToggle={false}
-      // enableDownloadMenu={false}
+      enableDensityToggle
+      enableDownloadMenu
+      enableColumnSettings={false}
+      enableGrouping={false}
     />
   );
 }

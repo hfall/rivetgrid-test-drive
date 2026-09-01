@@ -1,15 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import * as React from "react";
-import {
-  RivetGrid,
-  type Column,
-  type FilteringState,
-  type SortingState,
-  // type GroupingState,
-  type RivetGridView,
-  type RowAction,
-} from "@rivetgrid/rivetgrid";
-import "@rivetgrid/rivetgrid/styles.css";
+import { type Column } from "@rivetgrid/grid";
+import { RivetGridPro, type SavedView } from "@rivetgrid/pro";
 
 type StarterRow = {
   id: string;
@@ -243,25 +235,6 @@ function makeRows(count: number): StarterRow[] {
   return flatRows;
 }
 
-function getFilterType(
-  column: Column<StarterRow>,
-): Column<StarterRow>["filterType"] {
-  if (
-    column.cellType === "avatar" ||
-    column.type === "image" ||
-    column.cellFormat === "image"
-  )
-    return undefined;
-  if (column.type === "enum") return "enum";
-  if (column.type === "date") return "date";
-  if (column.type === "currency" || column.cellFormat === "currency")
-    return "currency";
-  if (column.type === "percentage" || column.cellFormat === "percentage")
-    return "percentage";
-  if (column.type === "number" || column.isNumeric) return "number";
-  return "text";
-}
-
 const STRUCTURAL_COLUMN_TYPES = [
   { id: "text", label: "Text" },
   { id: "number", label: "Number" },
@@ -410,17 +383,14 @@ const initialColumns: Column<StarterRow>[] = allColumns
     ...column,
     pin: undefined,
     resizable: column.resizable ?? true,
-    sortable: column.sortable ?? true,
-    searchable:
-      column.cellType === "avatar" || column.type === "image"
-        ? false
-        : (column.searchable ?? true),
-    filterType: getFilterType(column),
+    sortable: false,
+    searchable: false,
+    filterType: undefined,
   }));
 
-export function CustomTable() {
+export function UndoRedo() {
   const [columns, setColumns] = React.useState(() => initialColumns);
-  const [rows, setRows] = React.useState(() => makeRows(1000));
+  const [rows, setRows] = React.useState(() => makeRows(100));
   const insertedColumnId = React.useRef(1);
   const insertedRowId = React.useRef(1);
 
@@ -450,203 +420,218 @@ export function CustomTable() {
   const handleCommitCell = React.useCallback(
     (rowId: string, columnId: string, value: unknown) => {
       setRows((current) => {
+        const previousRow = current.find((row) => row.id === rowId);
+        const previousValue = previousRow
+          ? (previousRow as unknown as Record<string, unknown>)[columnId]
+          : undefined;
+        if (previousRow && !Object.is(previousValue, value)) {
+          setHistory((state) => ({
+            undo: [...state.undo, { rowId, columnId, previousValue, value }],
+            redo: [],
+          }));
+        }
         return updateRow(current, rowId, columnId, value);
       });
     },
     [updateRow],
   );
-  const [views, setViews] = React.useState<RivetGridView[]>([
+  const [comments, setComments] = React.useState([
+    { rowId: "row-1", columnId: "category", text: "Needs final review" },
+  ]);
+  const [history, setHistory] = React.useState<{
+    undo: Array<{
+      rowId: string;
+      columnId: string;
+      previousValue: unknown;
+      value: unknown;
+    }>;
+    redo: Array<{
+      rowId: string;
+      columnId: string;
+      previousValue: unknown;
+      value: unknown;
+    }>;
+  }>({ undo: [], redo: [] });
+  const handleUndoRequest = React.useCallback(() => {
+    const entry = history.undo[history.undo.length - 1];
+    if (!entry) return;
+    setRows((current) =>
+      updateRow(current, entry.rowId, entry.columnId, entry.previousValue),
+    );
+    setHistory((state) => ({
+      undo: state.undo.slice(0, -1),
+      redo: [...state.redo, entry],
+    }));
+  }, [history.undo, updateRow]);
+  const handleRedoRequest = React.useCallback(() => {
+    const entry = history.redo[history.redo.length - 1];
+    if (!entry) return;
+    setRows((current) =>
+      updateRow(current, entry.rowId, entry.columnId, entry.value),
+    );
+    setHistory((state) => ({
+      undo: [...state.undo, entry],
+      redo: state.redo.slice(0, -1),
+    }));
+  }, [history.redo, updateRow]);
+  const [views, setViews] = React.useState<SavedView[]>([
     { id: "default", name: "Default", state: {} },
     { id: "builder-starter", name: "Builder starter", state: {} },
   ]);
-  const [filteringState, setFilteringState] = React.useState<FilteringState>({
-    columnFilters: [],
-    globalFilter: "",
-  });
-  const [sortingState, setSortingState] = React.useState<SortingState>([]);
-  const [groupingState, setGroupingState] = React.useState<unknown>({
-    groupBy: "category",
-    collapsedGroups: new Set(),
-  });
-  const [rowActionStatus, setRowActionStatus] = React.useState("");
-  const rowActions = React.useMemo<RowAction<StarterRow>[]>(
-    () => [
-      {
-        id: "copy-row-id",
-        label: "Copy row ID",
-        onClick: async (row) => {
-          if (!navigator.clipboard?.writeText) {
-            setRowActionStatus("Clipboard access is unavailable");
-            return;
-          }
-          try {
-            await navigator.clipboard.writeText(row.id);
-            setRowActionStatus("Copied row ID " + row.id);
-          } catch {
-            setRowActionStatus("Row ID could not be copied");
-          }
-        },
-      },
-    ],
-    [],
-  );
 
   return (
-    <>
-      <RivetGrid
-        ariaLabel="Custom table"
-        columns={columns}
-        rows={rows}
-        getRowId={(row) => row.id}
-        height={480}
-        virtualization={{ enabled: true, overscan: 5 }}
-        stickyHeader
-        density={"relaxed"}
-        rowStyle="outline"
-        theme="light"
-        rivetGridWidthMode="fill"
-        resizeMode="live"
-        filteringState={filteringState}
-        onFilteringChange={(event) => {
-          setFilteringState(event.next);
-        }}
-        sortingState={sortingState}
-        onSortingChange={(event) => {
-          setSortingState(event.next);
-        }}
-        // enableClearSortToolbarAction={false}
-        enableSavedViews
-        views={views}
-        onViewsChange={setViews}
-        enableColumnSettings
-        enablePagination
-        defaultPageSize={25}
-        enableGrouping
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        groupingState={groupingState as any}
-        onGroupingChange={(event) => setGroupingState(event.next)}
-        richCells={{ enabled: true }}
-        rowActions={rowActions}
-        keyboardNav="cells"
-        editingEnabled
-        spreadsheetDefaults={{
+    <RivetGridPro
+      ariaLabel="Custom table"
+      columns={columns}
+      rows={rows}
+      getRowId={(row) => row.id}
+      height={480}
+      stickyHeader
+      density={"medium"}
+      rowStyle="outline"
+      theme="light"
+      rivetGridWidthMode="fill"
+      resizeMode="live"
+      enableGrouping={false}
+      richCells={{ enabled: true }}
+      savedViews={{ enabled: true, views, onViewsChange: setViews }}
+      spreadsheet={{
+        rangeSelection: { enabled: true },
+        comments: {
           enabled: true,
-          rangeSelection: { enabled: false },
-          fillHandle: { enabled: false },
-          structuralEditing: {
-            enabled: true,
-            columnTypes: STRUCTURAL_COLUMN_TYPES,
-            onInsertColumn: ({ columnId, position, typeId }) => {
-              const sequence = insertedColumnId.current;
-              insertedColumnId.current += 1;
-              const nextColumnId = "custom_" + typeId + "_" + sequence;
-              const typePatch = getColumnTypePatch(typeId);
-              const nextColumn: Column<StarterRow> = {
-                id: nextColumnId,
-                header:
-                  (STRUCTURAL_COLUMN_TYPES.find(
-                    (option) => option.id === typeId,
-                  )?.label ?? "Text") +
-                  " " +
-                  sequence,
-                accessor: (row) =>
-                  ((row as unknown as Record<string, unknown>)[nextColumnId] ??
-                    null) as React.ReactNode,
-                width: typePatch.minWidth ?? 160,
-                ...typePatch,
-              };
-              setColumns((current) => {
-                const anchorIndex = current.findIndex(
-                  (column) => column.id === columnId,
-                );
-                const insertIndex =
-                  anchorIndex < 0
-                    ? current.length
-                    : position === "left"
-                      ? anchorIndex
-                      : anchorIndex + 1;
-                return [
-                  ...current.slice(0, insertIndex),
-                  nextColumn,
-                  ...current.slice(insertIndex),
-                ];
-              });
-              setRows((current) =>
-                mapRows(
-                  current,
-                  (row) => ({ ...row, [nextColumnId]: null }) as StarterRow,
-                ),
+          comments,
+          onCellCommentChange: ({ rowId, columnId, text }) =>
+            setComments((current) => [
+              ...current.filter(
+                (comment) =>
+                  comment.rowId !== rowId || comment.columnId !== columnId,
+              ),
+              ...(text.trim() ? [{ rowId, columnId, text }] : []),
+            ]),
+        },
+        undo: {
+          enabled: true,
+          canUndo: history.undo.length > 0,
+          onUndoRequest: handleUndoRequest,
+        },
+        redo: {
+          enabled: true,
+          canRedo: history.redo.length > 0,
+          onRedoRequest: handleRedoRequest,
+        },
+      }}
+      keyboardNav="cells"
+      editingEnabled
+      editingDefaults={{
+        enabled: true,
+        structuralEditing: {
+          enabled: true,
+          columnTypes: STRUCTURAL_COLUMN_TYPES,
+          onInsertColumn: ({ columnId, position, typeId }) => {
+            const sequence = insertedColumnId.current;
+            insertedColumnId.current += 1;
+            const nextColumnId = "custom_" + typeId + "_" + sequence;
+            const typePatch = getColumnTypePatch(typeId);
+            const nextColumn: Column<StarterRow> = {
+              id: nextColumnId,
+              header:
+                (STRUCTURAL_COLUMN_TYPES.find((option) => option.id === typeId)
+                  ?.label ?? "Text") +
+                " " +
+                sequence,
+              accessor: (row) =>
+                ((row as unknown as Record<string, unknown>)[nextColumnId] ??
+                  null) as React.ReactNode,
+              width: typePatch.minWidth ?? 160,
+              ...typePatch,
+            };
+            setColumns((current) => {
+              const anchorIndex = current.findIndex(
+                (column) => column.id === columnId,
               );
-            },
-            onInsertRow: ({ rowId, position }) => {
-              const nextRow = Object.fromEntries([
-                ["id", "inserted-" + insertedRowId.current],
-                ...columns.map((column) => [column.id, null]),
-              ]) as unknown as StarterRow;
-              insertedRowId.current += 1;
-              setRows((current) => {
-                const result = insertRow(current, rowId, position, nextRow);
-                return result.inserted ? result.rows : [...current, nextRow];
-              });
-            },
-            onRenameColumn: ({ columnId, header }) => {
-              setColumns((current) =>
-                current.map((column) =>
-                  column.id === columnId ? { ...column, header } : column,
-                ),
-              );
-            },
-            onConvertColumnType: ({ columnId, typeId }) => {
-              setColumns((current) =>
-                current.map((column) => {
-                  if (column.id !== columnId) return column;
-                  const {
-                    cellFormat: _cellFormat,
-                    cellType: _cellType,
-                    enumOptions: _enumOptions,
-                    filterType: _filterType,
-                    isNumeric: _isNumeric,
-                    priceAction: _priceAction,
-                    richCell: _richCell,
-                    type: _type,
-                    align: _align,
-                    ...base
-                  } = column;
-                  return {
-                    ...base,
-                    ...getColumnTypePatch(typeId),
-                    accessor: (row) =>
-                      ((row as unknown as Record<string, unknown>)[columnId] ??
-                        null) as React.ReactNode,
-                  };
-                }),
-              );
-            },
-            onDeleteColumn: ({ columnId }) => {
-              if (columns.length <= 1) return;
-              setColumns((current) =>
-                current.filter((column) => column.id !== columnId),
-              );
-              setRows((current) =>
-                mapRows(current, (row) => {
-                  const next = { ...row } as StarterRow &
-                    Record<string, unknown>;
-                  delete next[columnId];
-                  return next;
-                }),
-              );
-            },
-            onDeleteRow: ({ rowId }) => {
-              if (countRows(rows) <= 1) return;
-              setRows((current) => deleteRow(current, rowId));
-            },
+              const insertIndex =
+                anchorIndex < 0
+                  ? current.length
+                  : position === "left"
+                    ? anchorIndex
+                    : anchorIndex + 1;
+              return [
+                ...current.slice(0, insertIndex),
+                nextColumn,
+                ...current.slice(insertIndex),
+              ];
+            });
+            setRows((current) =>
+              mapRows(
+                current,
+                (row) => ({ ...row, [nextColumnId]: null }) as StarterRow,
+              ),
+            );
           },
-          onCommitCell: handleCommitCell,
-        }}
-      />
-      <p role="status" aria-live="polite">
-        {rowActionStatus}
-      </p>
-    </>
+          onInsertRow: ({ rowId, position }) => {
+            const nextRow = Object.fromEntries([
+              ["id", "inserted-" + insertedRowId.current],
+              ...columns.map((column) => [column.id, null]),
+            ]) as unknown as StarterRow;
+            insertedRowId.current += 1;
+            setRows((current) => {
+              const result = insertRow(current, rowId, position, nextRow);
+              return result.inserted ? result.rows : [...current, nextRow];
+            });
+          },
+          onRenameColumn: ({ columnId, header }) => {
+            setColumns((current) =>
+              current.map((column) =>
+                column.id === columnId ? { ...column, header } : column,
+              ),
+            );
+          },
+          onConvertColumnType: ({ columnId, typeId }) => {
+            setColumns((current) =>
+              current.map((column) => {
+                if (column.id !== columnId) return column;
+                const {
+                  cellFormat: _cellFormat,
+                  cellType: _cellType,
+                  enumOptions: _enumOptions,
+                  filterType: _filterType,
+                  isNumeric: _isNumeric,
+                  priceAction: _priceAction,
+                  richCell: _richCell,
+                  type: _type,
+                  align: _align,
+                  ...base
+                } = column;
+                return {
+                  ...base,
+                  ...getColumnTypePatch(typeId),
+                  accessor: (row) =>
+                    ((row as unknown as Record<string, unknown>)[columnId] ??
+                      null) as React.ReactNode,
+                };
+              }),
+            );
+          },
+          onDeleteColumn: ({ columnId }) => {
+            if (columns.length <= 1) return;
+            setColumns((current) =>
+              current.filter((column) => column.id !== columnId),
+            );
+            setRows((current) =>
+              mapRows(current, (row) => {
+                const next = { ...row } as StarterRow & Record<string, unknown>;
+                delete next[columnId];
+                return next;
+              }),
+            );
+          },
+          onDeleteRow: ({ rowId }) => {
+            if (countRows(rows) <= 1) return;
+            setRows((current) => deleteRow(current, rowId));
+          },
+        },
+        onCommitCell: handleCommitCell,
+      }}
+    />
   );
 }
